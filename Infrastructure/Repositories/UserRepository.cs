@@ -16,6 +16,15 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+    public async Task<User> AddAsync(User user)
+    {
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+        _context.Entry(user).State = EntityState.Detached;
+
+        return user;
+    }
+
     public User Add(User user)
     {
         _context.Users.Add(user);
@@ -53,6 +62,15 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         _context.Entry(user).State = EntityState.Modified;
         _context.SaveChanges();
+
+        return user;
+    }
+
+    public async Task<User> UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        _context.Entry(user).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
 
         return user;
     }

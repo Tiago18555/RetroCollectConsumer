@@ -35,12 +35,12 @@ public partial class ChangePasswordProcessor : IRequestProcessor
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<ChangePasswordInfo>(field);
 
-        var res = await ChangePassword(request);
+        var res = await ChangePasswordAsync(request);
 
         return new MessageModel{ Message = res, SourceType = "change-password" };
     }
 
-    public async Task<ResponseModel> ChangePassword(ChangePasswordInfo request)
+    public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request)
     {
         var foundUser = _userRepository.SingleOrDefault(u => u.UserId == request.userId);
 
@@ -60,8 +60,8 @@ public partial class ChangePasswordProcessor : IRequestProcessor
 
         try
         {
-            _userRepository.Update(foundUser);
-            _recoverRepository.UpdateDocument("RecoverCollection", "UserId", foundUser.UserId, "Success", true);
+            await _userRepository.UpdateAsync(foundUser);
+            await _recoverRepository.UpdateDocumentAsync("RecoverCollection", "UserId", foundUser.UserId, "Success", true);
             return "Password updated successfully".Ok();
         }
         catch (Exception)

@@ -38,7 +38,7 @@ public class ManageUserProcessor : IRequestProcessor
     {
         User user = _repository.SingleOrDefault(x => x.UserId == request.UserId);
 
-        var res = this._repository.Update(user.MapAndFill(request, _dateTimeProvider.UtcNow));
+        var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow));
 
         return res
             .MapObjectTo( new UpdateUserResponseModel() );

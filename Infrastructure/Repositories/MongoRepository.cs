@@ -38,12 +38,27 @@ public class MongoRepository: IRecoverRepository
         return document;
     }
 
+    public async Task<BsonDocument> InsertDocumentAsync(string collectionName, BsonDocument document)
+    {
+        var collection = _context.GetCollection<BsonDocument>(collectionName);
+        await collection.InsertOneAsync(document);
+        return document;
+    }
+
     public BsonDocument UpdateDocument<TValue>(string collectionName, string idFieldName, TValue idValue, string fieldNameToUpdate, BsonValue newValue)
     {
         var filter = Builders<BsonDocument>.Filter.Eq(idFieldName, BsonValue.Create(idValue));
         var update = Builders<BsonDocument>.Update.Set(fieldNameToUpdate, newValue);
         var collection = _context.GetCollection<BsonDocument>(collectionName);
         return collection.FindOneAndUpdate(filter, update);            
+    }
+
+    public async Task<BsonDocument> UpdateDocumentAsync<TValue>(string collectionName, string idFieldName, TValue idValue, string fieldNameToUpdate, BsonValue newValue)
+    {
+        var filter = Builders<BsonDocument>.Filter.Eq(idFieldName, BsonValue.Create(idValue));
+        var update = Builders<BsonDocument>.Update.Set(fieldNameToUpdate, newValue);
+        var collection = _context.GetCollection<BsonDocument>(collectionName);
+        return await collection.FindOneAndUpdateAsync(filter, update);            
     }
 
     public bool Any(string collectionName, FilterDefinition<BsonDocument> filter)
@@ -58,6 +73,14 @@ public class MongoRepository: IRecoverRepository
         var filter = Builders<BsonDocument>.Filter.Eq(fieldName, value);
         var collection = _context.GetCollection<BsonDocument>(collectionName);
         return collection.Find(filter).FirstOrDefault();
+    }
+
+    public async Task<BsonDocument> FindDocumentAsync<T>(string collectionName, string fieldName, T value)
+    {
+        var filter = Builders<BsonDocument>.Filter.Eq(fieldName, value);
+        var collection = _context.GetCollection<BsonDocument>(collectionName);
+        var res = await collection.FindAsync(filter);
+        return await res.FirstOrDefaultAsync();
     }
 
     public void DeleteDocument(string collectionName, string fieldName, string value)

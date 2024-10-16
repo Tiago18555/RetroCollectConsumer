@@ -11,6 +11,11 @@ public interface IUserRepository
     /// <returns>The entity found, or <see langword="null" />.</returns>
     User Add(User user);
 
+    /// <exception cref="DbUpdateConcurrencyException"></exception>
+    /// <exception cref="DbUpdateException"></exception>
+    /// <returns>The entity found, or <see langword="null" />.</returns>
+    Task<User> AddAsync(User user);
+
     /// <exception cref="ArgumentNullException"></exception>
     Task<List<T>> GetAll<T>(Expression<Func<User, T>> predicate);
 
@@ -27,6 +32,12 @@ public interface IUserRepository
     /// <exception cref="ArgumentNullException"></exception>
     /// <returns>The entity found, or <see langword="null" />.</returns>
     User Update(User user);
+
+    /// <exception cref="DbUpdateConcurrencyException"></exception>
+    /// <exception cref="DbUpdateException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <returns>The entity found, or <see langword="null" />.</returns>
+    Task<User> UpdateAsync(User user);
 
     #endregion
 

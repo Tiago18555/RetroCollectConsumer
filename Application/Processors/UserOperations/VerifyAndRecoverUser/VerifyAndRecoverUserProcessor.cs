@@ -91,8 +91,8 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
             using var smtp = new SmtpClient();
             smtp.Connect(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
             smtp.Authenticate(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
-            smtp.Send(email);
-            smtp.Disconnect(true);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
 
             return "Email sent".Ok();
         }
