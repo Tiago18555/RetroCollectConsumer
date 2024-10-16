@@ -13,7 +13,7 @@ using Application.UseCases.UserOperations.CreateUser;
 using Domain.Repositories;
 using CrossCutting;
 
-namespace Application.Processor.UserOperations.CreateUser;
+namespace Application.Processors.UserOperations.CreateUser;
 public class CreateUserProcessor : IRequestProcessor
 {
     private readonly IUserRepository _repository;
@@ -27,22 +27,14 @@ public class CreateUserProcessor : IRequestProcessor
         this._config = config;
     }
 
-    public async Task<MessageModel> ProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message)
     {
-        System.Console.ForegroundColor = ConsoleColor.DarkMagenta;
-        System.Console.WriteLine("STARTING PROCESS...");
-        System.Console.WriteLine(message);
-        System.Console.ForegroundColor = ConsoleColor.White;
-
         var field = message.ExtractMessage();
-
-        System.Console.WriteLine(field);
-
         var request = JsonSerializer.Deserialize<CreateUserRequest>(field);
 
         var res = await CreateUser(request);
 
-        return new MessageModel{ Message = res, SourceType = "create-user-response" };
+        return new MessageModel{ Message = res, SourceType = "create-user" };
     }
 
     /// <exception cref="DBConcurrencyException"></exception>
@@ -56,18 +48,26 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="BCrypt.Net.SaltParseException"></exception>
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DBUpdateException"></exception>
-    public async Task<CreateUserResponseModel> CreateUser(CreateUserRequest createUserRequestModel)
+    public async Task<CreateUserResponseModel> CreateUser(CreateUserRequest request)
     {
-        User user = createUserRequestModel.MapObjectTo(new User());
+        try
+        {
+            User user = request.MapObjectTo(new User());
 
-        user.Password = BCryptNet.HashPassword(createUserRequestModel.Password);
-        user.CreatedAt = DateTime.Now;
+            user.Password = BCryptNet.HashPassword(request.Password);
+            user.CreatedAt = DateTime.Now;
 
-        var newUser = this._repository.Add(user);
+            var newUser = this._repository.Add(user);
 
-        SendEmailToVerify(newUser);
+            SendEmailToVerify(newUser);
+            return newUser.MapObjectTo(new CreateUserResponseModel());
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"ERROR: {ex.Message}");
+            return new CreateUserResponseModel();
+        }
 
-        return newUser.MapObjectTo(new CreateUserResponseModel());
     }
 
 

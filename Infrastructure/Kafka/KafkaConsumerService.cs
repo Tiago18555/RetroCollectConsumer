@@ -1,7 +1,4 @@
-using System;
 using System.Text.Json;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 using Confluent.Kafka;
 using Domain.Broker;
@@ -63,9 +60,13 @@ public class KafkaConsumerService: IConsumerService
             {
                 var result = _consumer.Consume(cts);
                 var messageType = GetMessageType(result.Message.Value);
+
                 var processor = _processorFactory.Create(messageType); //GET PROCESSOR TYPE
 
-                var processResult = await processor.ProcessAsync(result.Message.Value); //CALL
+                System.Console.WriteLine("**SELECTOR**");
+                System.Console.WriteLine(processor);
+
+                var processResult = await processor.CreateProcessAsync(result.Message.Value); //CALL
 
                 var data = JsonSerializer.Serialize(result.Message.Value);
                 _logger.LogInformation($"GroupId: {_parameters.GroupId} Mensagem: {processResult}");
