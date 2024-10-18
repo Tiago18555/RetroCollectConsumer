@@ -6,7 +6,6 @@ using MongoDB.Bson;
 using Microsoft.Extensions.Configuration;
 using Domain;
 using Domain.Repositories;
-using CrossCutting.Providers;
 using CrossCutting;
 using Domain.Broker;
 using System.Text.Json;
@@ -17,28 +16,20 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
 {
     private readonly IConfiguration _config;
     private readonly IRecoverRepository _recoverRepository;
-    private readonly IDateTimeProvider _timeProvider;
 
     public VerifyAndRecoverUserProcessor(
         IConfiguration config, 
-        IRecoverRepository recoverRepository, 
-        IDateTimeProvider timeProvider
+        IRecoverRepository recoverRepository
     )
     {
         _config = config;
         _recoverRepository = recoverRepository;
-        _timeProvider = timeProvider;
     }
 
     public async Task<MessageModel> CreateProcessAsync(string message)
     {
         var field = message.ExtractMessage();
-
-        System.Console.WriteLine("STRING MESSAGE");
-        System.Console.WriteLine(field);
-
         var request = JsonSerializer.Deserialize<SendEmailInfo>(field);
-
         var res = await SendEmail(request);
 
         return new MessageModel{ Message = res, SourceType = "verify-recover-user" };
@@ -46,6 +37,7 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
 
     public async Task<ResponseModel> SendEmail(SendEmailInfo request)
     {
+        StdOut.Info("New message received...");
         string host = _config.GetSection("Host").Value;
 
         var resetInfo = new PasswordResetInfo
@@ -56,7 +48,7 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
             Success = false
         };        
 
-        _recoverRepository.InsertDocument("RecoverCollection", resetInfo.ToBsonDocument());
+        await _recoverRepository.InsertDocumentAsync("RecoverCollection", resetInfo.ToBsonDocument());
 
         var resetLink = $"{host}auth/recover/{request.UserId}/{resetInfo.Timestamp}";
 
@@ -75,11 +67,6 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
         var body = template
             .Replace("#resetLink", resetLink)
             .Replace("#userName", request.Username);
-
-        System.Console.ForegroundColor = ConsoleColor.Green;
-        System.Console.WriteLine(body);
-        System.Console.ForegroundColor = ConsoleColor.White;
-
         try
         {
             var email = new MimeMessage();
@@ -94,12 +81,13 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 
+            StdOut.Info("Email sent");
+
             return "Email sent".Ok();
         }
-        catch (Exception msg) { return ResponseFactory.ServiceUnavailable(msg.ToString()); }
+        catch (Exception ex) {
+            StdOut.Error($"ERROR: {ex.Message}");
+            throw;
+        }
     }
-
-    #region inner methods
 }
-
-#endregion

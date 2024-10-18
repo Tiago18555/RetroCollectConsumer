@@ -9,7 +9,7 @@ using MailKit.Security;
 using MailKit.Net.Smtp;
 using BCryptNet = BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Configuration;
-using Application.UseCases.UserOperations.CreateUser;
+using Application.Processors.UserOperations.CreateUser;
 using Domain.Repositories;
 using CrossCutting;
 
@@ -31,7 +31,6 @@ public class CreateUserProcessor : IRequestProcessor
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<CreateUserRequest>(field);
-
         var res = await CreateUserAsync(request);
 
         return new MessageModel{ Message = res, SourceType = "create-user" };
@@ -50,6 +49,7 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="DBUpdateException"></exception>
     public async Task<CreateUserResponseModel> CreateUserAsync(CreateUserRequest request)
     {
+        StdOut.Info("New message received...");
         try
         {
             User user = request.MapObjectTo(new User());
@@ -64,7 +64,7 @@ public class CreateUserProcessor : IRequestProcessor
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"ERROR: {ex.Message}");
+            StdOut.Error($"ERROR: {ex.Message}");
             return new CreateUserResponseModel();
         }
 
@@ -76,6 +76,7 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="InvalidOperationException"></exception>
     internal void SendEmailToVerify(User user)
     {
+        StdOut.Info("Sending email...");
         if (string.IsNullOrEmpty(user.Email))
         {
             throw new ArgumentException($"Valor de email não pode ser nulo. at {System.Environment.CurrentDirectory}");
@@ -96,10 +97,6 @@ public class CreateUserProcessor : IRequestProcessor
             .Replace("#verificationLink", verificationLink)
             .Replace("#userName", user.Username);
 
-        System.Console.ForegroundColor = ConsoleColor.Green;
-        System.Console.WriteLine(body);
-        System.Console.ForegroundColor = ConsoleColor.White;
-
         var email = new MimeMessage();
         email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:Username").Value));
         email.To.Add(MailboxAddress.Parse(user.Email));
@@ -112,9 +109,7 @@ public class CreateUserProcessor : IRequestProcessor
         smtp.Send(email);
         smtp.Disconnect(true);
 
-        System.Console.ForegroundColor = ConsoleColor.Blue;
-        System.Console.WriteLine("Email sent");        
-        System.Console.ForegroundColor = ConsoleColor.White;
+        StdOut.Info("Email sent");        
     }
 
 }

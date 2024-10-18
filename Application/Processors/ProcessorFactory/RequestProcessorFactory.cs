@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Application.Processors.UserOperations.CreateUser;
 using Application.Processors.UserOperations.ManageUser;
 using Application.Processors.UserOperations.VerifyAndRecoverUser;
+using Application.Processors.UserCollectionOperations.ManageGameCollection;
+using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
+using Application.Processors.UserCollectionOperations.ManageComputerCollection;
 
 namespace Application.Processors.ProcessorFactory;
 
@@ -27,6 +30,17 @@ public class RequestProcessorFactory : IRequestProcessorFactory
 
 
             /** GAME OPERATIONS **/
+            "add-game" =>               _sp.GetService<AddGameCollectionProcessor>(),
+            "delete-game" =>            _sp.GetService<DeleteGameCollectionProcessor>(),
+            "update-game" =>            _sp.GetService<UpdateGameCollectionProcessor>(),
+
+            "add-console" =>            _sp.GetService<AddConsoleCollectionProcessor>(),
+            "delete-console" =>         _sp.GetService<DeleteConsoleCollectionProcessor>(),
+            "update-console" =>         _sp.GetService<UpdateConsoleCollectionProcessor>(),
+            
+            "add-computer" =>           _sp.GetService<AddComputerCollectionProcessor>(),
+            "delete-computer" =>        _sp.GetService<DeleteComputerCollectionProcessor>(),
+            "update-computer" =>        _sp.GetService<UpdateComputerCollectionProcessor>(),
 
             /** USER WISHLIST OPERATIONS **/
 

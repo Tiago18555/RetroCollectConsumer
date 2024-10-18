@@ -29,6 +29,7 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddProcessors();
         services.AddBrokerServices();
+        services.AddIgdbServices();
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IMongoDatabase>(provider =>

@@ -42,6 +42,7 @@ public partial class ChangePasswordProcessor : IRequestProcessor
 
     public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request)
     {
+        StdOut.Info("New message received...");
         var foundUser = _userRepository.SingleOrDefault(u => u.UserId == request.userId);
 
         if (foundUser == null)            
@@ -62,10 +63,13 @@ public partial class ChangePasswordProcessor : IRequestProcessor
         {
             await _userRepository.UpdateAsync(foundUser);
             await _recoverRepository.UpdateDocumentAsync("RecoverCollection", "UserId", foundUser.UserId, "Success", true);
+
+            StdOut.Info("Password updated successfully");
             return "Password updated successfully".Ok();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            StdOut.Error($"ERROR: {ex.Message}");
             throw;
         }
     }

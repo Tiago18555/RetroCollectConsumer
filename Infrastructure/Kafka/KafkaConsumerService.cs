@@ -5,6 +5,7 @@ using Domain.Broker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using CrossCutting;
 
 namespace Infrastructure.Kafka;
 public class KafkaConsumerService: IConsumerService
@@ -43,8 +44,6 @@ public class KafkaConsumerService: IConsumerService
 
     private string GetMessageType(string message)
     {  
-        System.Console.WriteLine("GET MESSAGE TYPE... ... ...");
-        System.Console.WriteLine(message); 
         var _object = JsonSerializer.Deserialize(message, typeof(MessageModel)) as MessageModel;
         return _object.SourceType;
     }
@@ -63,26 +62,21 @@ public class KafkaConsumerService: IConsumerService
 
                 var processor = _processorFactory.Create(messageType); //GET PROCESSOR TYPE
 
-                System.Console.WriteLine("**SELECTOR**");
-                System.Console.WriteLine(processor);
-
                 var processResult = await processor.CreateProcessAsync(result.Message.Value); //CALL
 
                 var data = JsonSerializer.Serialize(result.Message.Value);
                 _logger.LogInformation($"GroupId: {_parameters.GroupId} Mensagem: {processResult}");
-                _logger.LogInformation(data.ToString());                
-
-                System.Console.WriteLine(data.ToString());
+                _logger.LogInformation(data.ToString());
             }
-            catch(ConsumeException)
+            catch(ConsumeException err)
             {
                 _logger.LogInformation("There's no topic of this message.");
-                System.Console.WriteLine("There's no topic of this message.");
+                StdOut.Error($"Consume error: \n{err.Message}");
             }
-            catch(DbUpdateException e)
+            catch(DbUpdateException err)
             {
-                _logger.LogInformation($"An error occurs on the operation: {e.Message}");
-                System.Console.WriteLine($"An error occurs on the operation: {e.Message}");
+                _logger.LogInformation($"An error occurs on the operation: {err.Message}");
+                StdOut.Error($"DbUpdate error: \n{err.Message}");
             }
             finally
             {

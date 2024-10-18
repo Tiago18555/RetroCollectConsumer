@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Application.UseCases.UserOperations.CreateUser;
+namespace Application.Processors.UserOperations.CreateUser;
 
 public class CreateUserResponseModel
 {

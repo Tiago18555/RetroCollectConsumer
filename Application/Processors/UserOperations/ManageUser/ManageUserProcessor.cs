@@ -36,10 +36,12 @@ public class ManageUserProcessor : IRequestProcessor
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<UpdateUserResponseModel> UpdateUser(UpdateUserRequest request)
     {
+        StdOut.Info("New message received...");
         User user = _repository.SingleOrDefault(x => x.UserId == request.UserId);
 
         var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow));
 
+        StdOut.Info("User updated successfully");
         return res
             .MapObjectTo( new UpdateUserResponseModel() );
     }
