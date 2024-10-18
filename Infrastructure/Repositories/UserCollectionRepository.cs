@@ -14,10 +14,10 @@ public class UserCollectionRepository : IUserCollectionRepository
         _context = context;
     }
 
-    public UserCollection Add(UserCollection user)
+    public async Task<UserCollection> AddAsync(UserCollection user)
     {
-        _context.UserCollections.Add(user);
-        _context.SaveChanges();
+        await _context.UserCollections.AddAsync(user);
+        await _context.SaveChangesAsync();
         _context.Entry(user).Reference(x => x.Game).Load();
         _context.Entry(user).Reference(x => x.User).Load();
         _context.Entry(user).State = EntityState.Detached; 
@@ -33,39 +33,30 @@ public class UserCollectionRepository : IUserCollectionRepository
             .Any(predicate);
     }
 
-    public bool Delete(UserCollection user)
+    public async Task<bool> DeleteAsync(UserCollection user)
     {
         _context.UserCollections.Remove(user);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return !_context.UserCollections.Any(x => x.UserCollectionId == user.UserCollectionId); //NONE MATCH
     }
 
-    public T GetById<T>(Guid id, Func<UserCollection, T> predicate) where T : class
+    public async Task<UserCollection> SingleOrDefaultAsync(Func<UserCollection, bool> predicate)
     {
-        return _context.UserCollections
-            .Where(x => x.UserCollectionId == id)
-            .AsNoTracking()
-            .Select(predicate)
-            .FirstOrDefault();
-    }
-
-    public UserCollection SingleOrDefault(Func<UserCollection, bool> predicate)
-    {
-        return _context
+        return await _context
             .UserCollections
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefault();
+            .SingleOrDefaultAsync();
     }
 
-    public UserCollection Update(UserCollection user)
+    public async Task<UserCollection> UpdateAsync(UserCollection user)
     {
         _context.UserCollections.Update(user);
         _context.Entry(user).Reference(x => x.Game).Load();
         _context.Entry(user).Reference(x => x.User).Load();
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return user;
     }

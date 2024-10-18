@@ -60,7 +60,7 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
 
             try
             {
-                var res = _consoleRepository.Add(console);
+                var res = await _consoleRepository.AddAsync(console);
             }
             catch (InvalidOperationException)
             {
@@ -93,7 +93,7 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = _userConsoleRepository.Add(userConsole);
+            var res = await _userConsoleRepository.AddAsync(userConsole);
             return res.MapObjectsTo(new AddConsoleResponseModel()).Created();
         }
         catch (DBConcurrencyException)

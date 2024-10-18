@@ -3,7 +3,6 @@ using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver.Linq;
-using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories;
 
@@ -14,10 +13,10 @@ public class WishlistRepository : IWishlistRepository
     public WishlistRepository(DataContext context) =>
         _context = context;
 
-    public Wishlist Add(Wishlist wishlist)
+    public async Task<Wishlist> AddAsync(Wishlist wishlist)
     {
-        _context.Wishlists.Add(wishlist);
-        _context.SaveChanges();
+        await _context.Wishlists.AddAsync(wishlist);
+        await _context.SaveChangesAsync();
         _context.Entry(wishlist).Reference(x => x.Game).Load();
         _context.Entry(wishlist).Reference(x => x.User).Load();
         _context.Entry(wishlist).State = EntityState.Detached;
@@ -33,69 +32,22 @@ public class WishlistRepository : IWishlistRepository
             .Any(predicate);
     }
 
-    public bool Delete(Wishlist rating)
+    public async Task<bool> DeleteAsync(Wishlist rating)
     {
         _context.Wishlists.Remove(rating);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
-        return !_context.Wishlists.Any(x => x.WishlistId == rating.WishlistId);
+        var res = !await _context.Wishlists.AnyAsync(x => x.WishlistId == rating.WishlistId);
+
+        return res;
     }
-
-    public async Task<List<T>> GetWishlistsByGame<T>(int gameId, Expression<Func<Wishlist, T>> predicate)
+    public async Task<Wishlist> SingleOrDefaultAsync(Func<Wishlist, bool> predicate)
     {
-        return await _context.Wishlists
-            .Include(g => g.User)
-            .AsNoTracking()
-            .Where(x => x.GameId == gameId)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetWishlistsByGame<T>(int gameId, Expression<Func<Wishlist, T>> predicate, int pageNumber, int pageSize)
-    {
-        var offset = (pageNumber - 1) * pageSize;
-
-        return await _context.Wishlists
-            .Include(g => g.User)
-            .AsNoTracking()
-            .Where(x => x.GameId == gameId)
-            .Skip(offset)
-            .Take(pageSize)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetWishlistsByUser<T>(Guid userId, Expression<Func<Wishlist, T>> predicate)
-    {
-        return await _context.Wishlists
-            .Include(g => g.Game)
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetWishlistsByUser<T>(Guid userId, Expression<Func<Wishlist, T>> predicate, int pageNumber, int pageSize)
-    {
-        var offset = (pageNumber - 1) * pageSize;
-
-        return await _context.Wishlists
-            .Include(g => g.Game)
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Skip(offset)
-            .Take(pageSize)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public Wishlist SingleOrDefault(Func<Wishlist, bool> predicate)
-    {
-        return _context
+        return await _context
             .Wishlists
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefault();
+            .SingleOrDefaultAsync();
     }
 }

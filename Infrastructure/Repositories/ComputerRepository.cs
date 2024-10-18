@@ -14,10 +14,10 @@ public class ComputerRepository : IComputerRepository
         _context = context;
     }
 
-    public Computer Add(Computer computer)
+    public async Task<Computer> AddAsync(Computer computer)
     {
-        _context.Computers.Add(computer);
-        _context.SaveChanges();
+        await _context.Computers.AddAsync(computer);
+        await _context.SaveChangesAsync();
         _context.Entry(computer).State = EntityState.Detached;
 
         return computer;

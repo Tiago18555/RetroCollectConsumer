@@ -60,11 +60,11 @@ public partial class UpdateGameCollectionProcessor : IRequestProcessor
                     ReleaseYear = gameInfo.FirstReleaseDate
                 };
 
-                _gameRepository.Add(game);
+                await _gameRepository.AddAsync(game);
 
             }
 
-            var res = this._userCollectionRepository.Update(newGame);
+            var res = await this._userCollectionRepository.UpdateAsync(newGame);
 
             return res.MapObjectsTo(new UpdateGameResponseModel()).Ok();
         }

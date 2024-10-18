@@ -57,11 +57,11 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
                     Name= consoleInfo.Name,
                     IsPortable= consoleInfo.IsPortable                        
                 };
-                _consoleRepository.Add(console);
+                await _consoleRepository.AddAsync(console);
 
             }
 
-            var res = this._userConsoleRepository.Update(newConsole);
+            var res = await this._userConsoleRepository.UpdateAsync(newConsole);
 
             return res.MapObjectsTo(new UpdateConsoleResponseModel()).Ok();
         }

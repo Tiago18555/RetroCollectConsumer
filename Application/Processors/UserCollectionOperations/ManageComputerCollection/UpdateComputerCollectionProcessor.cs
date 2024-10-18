@@ -54,10 +54,10 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
                     Name = computerInfo.Name,
                     IsArcade = computerInfo.IsArcade
                 };
-                _computerRepository.Add(computer);
+                await _computerRepository.AddAsync(computer);
             }
 
-            var res = this._userComputerRepository.Update(newComputer);
+            var res = await this._userComputerRepository.UpdateAsync(newComputer);
 
             return res.MapObjectsTo(new UpdateComputerResponseModel()).Ok();
         }

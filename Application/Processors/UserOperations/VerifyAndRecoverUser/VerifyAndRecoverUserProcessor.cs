@@ -52,16 +52,13 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
 
         var resetLink = $"{host}auth/recover/{request.UserId}/{resetInfo.Timestamp}";
 
-
-        var template = File.ReadAllText(
-
+        var template = await File.ReadAllTextAsync(
             Path.Combine(
                 System.Environment.CurrentDirectory,
                 _config["BasePath"],
                 "Static",
                 "recover-template.html"
             )
-
         );
 
         var body = template
@@ -76,8 +73,8 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
             email.Body = new TextPart(TextFormat.Html) { Text = body };
 
             using var smtp = new SmtpClient();
-            smtp.Connect(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
+            await smtp.ConnectAsync(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 

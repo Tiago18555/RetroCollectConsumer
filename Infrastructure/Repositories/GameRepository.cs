@@ -14,10 +14,10 @@ public class GameRepository : IGameRepository
         _context = context;
     }
 
-    public Game Add(Game game)
+    public async Task<Game> AddAsync(Game game)
     {
-        _context.Games.Add(game);
-        _context.SaveChanges();
+        await _context.Games.AddAsync(game);
+        await _context.SaveChangesAsync();
         _context.Entry(game).State = EntityState.Detached;
 
         return game;

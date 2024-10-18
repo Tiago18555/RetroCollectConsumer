@@ -31,26 +31,11 @@ public class MongoRepository: IRecoverRepository
         return (int)collection.CountDocuments(failedFilter);
     }
 
-    public BsonDocument InsertDocument(string collectionName, BsonDocument document)
-    {
-        var collection = _context.GetCollection<BsonDocument>(collectionName);
-        collection.InsertOne(document);
-        return document;
-    }
-
     public async Task<BsonDocument> InsertDocumentAsync(string collectionName, BsonDocument document)
     {
         var collection = _context.GetCollection<BsonDocument>(collectionName);
         await collection.InsertOneAsync(document);
         return document;
-    }
-
-    public BsonDocument UpdateDocument<TValue>(string collectionName, string idFieldName, TValue idValue, string fieldNameToUpdate, BsonValue newValue)
-    {
-        var filter = Builders<BsonDocument>.Filter.Eq(idFieldName, BsonValue.Create(idValue));
-        var update = Builders<BsonDocument>.Update.Set(fieldNameToUpdate, newValue);
-        var collection = _context.GetCollection<BsonDocument>(collectionName);
-        return collection.FindOneAndUpdate(filter, update);            
     }
 
     public async Task<BsonDocument> UpdateDocumentAsync<TValue>(string collectionName, string idFieldName, TValue idValue, string fieldNameToUpdate, BsonValue newValue)
@@ -67,14 +52,7 @@ public class MongoRepository: IRecoverRepository
         var result = collection.Find(filter).Any();
         return result;
     }
-
-    public BsonDocument FindDocument<T>(string collectionName, string fieldName, T value)
-    {
-        var filter = Builders<BsonDocument>.Filter.Eq(fieldName, value);
-        var collection = _context.GetCollection<BsonDocument>(collectionName);
-        return collection.Find(filter).FirstOrDefault();
-    }
-
+    
     public async Task<BsonDocument> FindDocumentAsync<T>(string collectionName, string fieldName, T value)
     {
         var filter = Builders<BsonDocument>.Filter.Eq(fieldName, value);

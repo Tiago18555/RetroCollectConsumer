@@ -30,7 +30,7 @@ public class DeleteConsoleCollectionProcessor : IRequestProcessor
     {
         try
         {
-            if (_userConsoleRepository.Delete(console))
+            if (await _userConsoleRepository.DeleteAsync(console))
             {
                 return ResponseFactory.Ok("Console deleted");
             }

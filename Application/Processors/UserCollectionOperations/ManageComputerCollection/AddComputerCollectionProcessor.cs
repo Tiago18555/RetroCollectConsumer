@@ -57,7 +57,7 @@ public class AddComputerCollectionProcessor : IRequestProcessor
                 };
 
 
-                var res = _computerRepository.Add(computer);
+                var res = await _computerRepository.AddAsync(computer);
             }
             catch (NullClaimException msg)
             {
@@ -94,7 +94,7 @@ public class AddComputerCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = _userComputerRepository.Add(userComputer);
+            var res = await _userComputerRepository.AddAsync(userComputer);
             return res.MapObjectsTo(new AddComputerResponseModel()).Created();
         }
         catch (DBConcurrencyException)

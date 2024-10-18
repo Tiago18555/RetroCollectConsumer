@@ -43,7 +43,7 @@ public partial class ChangePasswordProcessor : IRequestProcessor
     public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request)
     {
         StdOut.Info("New message received...");
-        var foundUser = _userRepository.SingleOrDefault(u => u.UserId == request.userId);
+        var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.UserId == request.userId);
 
         if (foundUser == null)            
             return ResponseFactory.NotFound("User Not Found");            

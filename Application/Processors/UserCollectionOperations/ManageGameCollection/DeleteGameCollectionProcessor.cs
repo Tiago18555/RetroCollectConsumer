@@ -30,7 +30,7 @@ public partial class DeleteGameCollectionProcessor : IRequestProcessor
     {
         try
         {
-            if (_userCollectionRepository.Delete(collection))
+            if (await _userCollectionRepository.DeleteAsync(collection))
             {
                 return ResponseFactory.Ok("Game deleted");
             }

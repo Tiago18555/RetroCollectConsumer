@@ -1,5 +1,4 @@
-﻿using CrossCutting.Providers;
-using Domain.Entities;
+﻿using Domain.Entities;
 
 namespace Application.Processors.UserOperations.ManageUser;
 

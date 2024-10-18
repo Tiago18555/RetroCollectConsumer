@@ -14,12 +14,12 @@ public class UserConsoleRepository : IUserConsoleRepository
         _context = context;
     }
 
-    public UserConsole Add(UserConsole user)
+    public async Task<UserConsole> AddAsync(UserConsole user)
     {
-        _context.UserConsoles.Add(user);
-        _context.SaveChanges();
-        _context.Entry(user).Reference(x => x.Console).Load();
-        _context.Entry(user).Reference(x => x.User).Load();
+        await _context.UserConsoles.AddAsync(user);
+        await _context.SaveChangesAsync();
+        await _context.Entry(user).Reference(x => x.Console).LoadAsync();
+        await _context.Entry(user).Reference(x => x.User).LoadAsync();
         _context.Entry(user).State = EntityState.Detached;
 
         return user;
@@ -33,38 +33,29 @@ public class UserConsoleRepository : IUserConsoleRepository
             .Any(predicate);
     }
 
-    public bool Delete(UserConsole user)
+    public async Task<bool> DeleteAsync(UserConsole user)
     {
         _context.UserConsoles.Remove(user);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
-        return !_context.UserConsoles.Any(x => x.UserConsoleId == user.UserConsoleId); //NONE MATCH
+        return ! await _context.UserConsoles.AnyAsync(x => x.UserConsoleId == user.UserConsoleId); //NONE MATCH
     }
 
-    public T GetById<T>(Func<UserConsole, T> predicate, Guid id) where T : class
+    public async Task<UserConsole> SingleOrDefaultAsync(Func<UserConsole, bool> predicate)
     {
-        return _context.UserConsoles
-            .Where(x => x.UserConsoleId == id)
-            .AsNoTracking()
-            .Select(predicate)
-            .FirstOrDefault();
-    }
-
-    public UserConsole SingleOrDefault(Func<UserConsole, bool> predicate)
-    {
-        return _context
+        return await _context
             .UserConsoles
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefault();
+            .SingleOrDefaultAsync();
     }
 
-    public UserConsole Update(UserConsole user)
+    public async Task<UserConsole> UpdateAsync(UserConsole user)
     {
         _context.UserConsoles.Update(user);
-        _context.Entry(user).Reference(x => x.User).Load();
-        _context.SaveChanges();
+        await _context.Entry(user).Reference(x => x.User).LoadAsync();
+        await _context.SaveChangesAsync();
 
         return user;
     }

@@ -9,7 +9,6 @@ using MailKit.Security;
 using MailKit.Net.Smtp;
 using BCryptNet = BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Configuration;
-using Application.Processors.UserOperations.CreateUser;
 using Domain.Repositories;
 using CrossCutting;
 
@@ -59,7 +58,7 @@ public class CreateUserProcessor : IRequestProcessor
 
             var newUser = await this._repository.AddAsync(user);
 
-            SendEmailToVerify(newUser);
+            await SendEmailToVerifyAsync(newUser);
             return newUser.MapObjectTo(new CreateUserResponseModel());
         }
         catch (Exception ex)
@@ -74,7 +73,7 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    internal void SendEmailToVerify(User user)
+    internal async Task SendEmailToVerifyAsync(User user)
     {
         StdOut.Info("Sending email...");
         if (string.IsNullOrEmpty(user.Email))
@@ -85,7 +84,7 @@ public class CreateUserProcessor : IRequestProcessor
 
         var verificationLink = $"{host}auth/verify/{user.UserId}";
 
-        var template = File.ReadAllText(
+        var template = await File.ReadAllTextAsync(
             Path.Combine(
                 _config["BasePath"],
                 "Static",
@@ -104,10 +103,10 @@ public class CreateUserProcessor : IRequestProcessor
         email.Body = new TextPart(TextFormat.Html) { Text = body };
 
         using var smtp = new SmtpClient();
-        smtp.Connect(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
-        smtp.Authenticate(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
-        smtp.Send(email);
-        smtp.Disconnect(true);
+        await smtp.ConnectAsync(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
+        await smtp.AuthenticateAsync(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
+        await smtp.SendAsync(email);
+        await smtp.DisconnectAsync(true);
 
         StdOut.Info("Email sent");        
     }

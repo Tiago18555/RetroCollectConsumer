@@ -14,10 +14,10 @@ public class ConsoleRepository : IConsoleRepository
         _context = context;
     }
 
-    public Console Add(Console console)
+    public async Task<Console> AddAsync(Console console)
     {
-        _context.Consoles.Add(console);
-        _context.SaveChanges();
+        await _context.Consoles.AddAsync(console);
+        await _context.SaveChangesAsync();
         _context.Entry(console).State = EntityState.Detached;
 
         return console;

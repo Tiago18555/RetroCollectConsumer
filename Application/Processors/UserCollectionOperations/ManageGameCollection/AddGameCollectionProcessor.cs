@@ -61,7 +61,7 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
                 };
 
 
-                _gameRepository.Add(game);
+                await _gameRepository.AddAsync(game);
             }
             catch (InvalidOperationException)
             {
@@ -95,7 +95,7 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = _userCollectionRepository.Add(userCollection);
+            var res = await _userCollectionRepository.AddAsync(userCollection);
             return res.MapObjectsTo(new AddGameResponseModel()).Created();
         }
         catch (NullClaimException msg)

@@ -31,7 +31,7 @@ public class DeleteComputerCollectionProcessor : IRequestProcessor
     {
         try
         {
-            if (_userComputerRepository.Delete(computer))
+            if (await _userComputerRepository.DeleteAsync(computer))
             {
                 return ResponseFactory.Ok("Computer deleted");
             }

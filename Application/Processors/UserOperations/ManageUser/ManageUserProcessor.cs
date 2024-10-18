@@ -37,7 +37,7 @@ public class ManageUserProcessor : IRequestProcessor
     public async Task<UpdateUserResponseModel> UpdateUser(UpdateUserRequest request)
     {
         StdOut.Info("New message received...");
-        User user = _repository.SingleOrDefault(x => x.UserId == request.UserId);
+        User user = await _repository.SingleOrDefaultAsync(x => x.UserId == request.UserId);
 
         var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow));
 

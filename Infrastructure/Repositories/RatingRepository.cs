@@ -3,7 +3,6 @@ using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver.Linq;
-using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories;
 
@@ -15,12 +14,12 @@ public class RatingRepository : IRatingRepository
         _context = context;
     
 
-    public Rating Add(Rating rating)
+    public async Task<Rating> AddAsync(Rating rating)
     {
-        _context.Ratings.Add(rating);
-        _context.SaveChanges();
-        _context.Entry(rating).Reference(x => x.Game).Load();
-        _context.Entry(rating).Reference(x => x.User).Load();
+        await _context.Ratings.AddAsync(rating);
+        await _context.SaveChangesAsync();
+        await _context.Entry(rating).Reference(x => x.Game).LoadAsync();
+        await _context.Entry(rating).Reference(x => x.User).LoadAsync();
         _context.Entry(rating).State = EntityState.Detached;
 
         return rating;
@@ -35,78 +34,30 @@ public class RatingRepository : IRatingRepository
     }
 
 
-    public bool Delete(Rating rating)
+    public async Task<bool> DeleteAsync(Rating rating)
     {
         _context.Ratings.Remove(rating);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return !_context.Ratings.Any(x => x.RatingId == rating.RatingId);
     }
 
-    public async Task<List<T>> GetRatingsByGame<T>(int gameId, Expression<Func<Rating, T>> predicate)
+    public async Task<Rating> SingleOrDefaultAsync(Func<Rating, bool> predicate)
     {
-        return await _context.Ratings
-            .Include(g => g.User)
-            .AsNoTracking()
-            .Where(x => x.GameId == gameId)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetRatingsByGame<T>(int gameId, Expression<Func<Rating, T>> predicate, int pageNumber, int pageSize)
-    {
-        var offset = (pageNumber - 1) * pageSize;
-
-        return await _context.Ratings
-            .Include(g => g.User)
-            .AsNoTracking()
-            .Where(x => x.GameId == gameId)
-            .Skip(offset)
-            .Take(pageSize)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetRatingsByUser<T>(Guid userId, Expression<Func<Rating, T>> predicate)
-    {
-        return await _context.Ratings
-            .Include(g => g.Game)
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public async Task<List<T>> GetRatingsByUser<T>(Guid userId, Expression<Func<Rating, T>> predicate, int pageNumber, int pageSize)
-    {
-        var offset = (pageNumber - 1) * pageSize;
-
-        return await _context.Ratings
-            .Include(g => g.Game)
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Skip(offset)
-            .Take(pageSize)
-            .Select(predicate)
-            .ToListAsync();
-    }
-
-    public Rating SingleOrDefault(Func<Rating, bool> predicate)
-    {
-        return _context
+        return await _context
             .Ratings
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefault();
+            .SingleOrDefaultAsync();
     }
 
-    public Rating Update(Rating rating)
+    public async Task<Rating> UpdateAsync(Rating rating)
     {
         _context.Ratings.Update(rating);
         _context.Entry(rating).Reference(x => x.Game).Load();
         _context.Entry(rating).Reference(x => x.User).Load();
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return rating;
     }
