@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,47 +15,47 @@ public class UserComputerRepository : IUserComputerRepository
         _context = context;
     }
 
-    public async Task<UserComputer> AddAsync(UserComputer user)
+    public async Task<UserComputer> AddAsync(UserComputer user, CancellationToken cts)
     {
-        _context.UserComputers.Add(user);
-        await _context.SaveChangesAsync();
-        await _context.Entry(user).Reference(x => x.Computer).LoadAsync();
+        await _context.UserComputers.AddAsync(user, cts);
+        await _context.SaveChangesAsync(cts);
+        await _context.Entry(user).Reference(x => x.Computer).LoadAsync(cts);
         _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }
 
-    public bool Any(Func<UserComputer, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<UserComputer, bool>> predicate, CancellationToken cts)
     {
-        return _context
+        return await _context
             .UserComputers
             .AsNoTracking()
-            .Any(predicate);
+            .AnyAsync(predicate, cts);
     }
 
-    public async Task<bool> DeleteAsync(UserComputer user)
+    public async Task<bool> DeleteAsync(UserComputer user, CancellationToken cts)
     {
         _context.UserComputers.Remove(user);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cts);
 
-        return !await _context.UserComputers.AnyAsync(x => x.UserComputerId == user.UserComputerId); //NONE MATCH
+        return !await _context.UserComputers.AnyAsync(x => x.UserComputerId == user.UserComputerId, cts); //NONE MATCH
     }
 
-    public async Task<UserComputer> SingleOrDefaultAsync(Func<UserComputer, bool> predicate)
+    public async Task<UserComputer> SingleOrDefaultAsync(Func<UserComputer, bool> predicate, CancellationToken cts)
     {
         return await _context
             .UserComputers
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cts);
     }
 
-    public async Task<UserComputer> UpdateAsync(UserComputer user)
+    public async Task<UserComputer> UpdateAsync(UserComputer user, CancellationToken cts)
     {
         _context.UserComputers.Update(user);;
-        _context.Entry(user).Reference(x => x.User).Load();
-        await _context.SaveChangesAsync();
+        await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
+        await _context.SaveChangesAsync(cts);
 
         return user;
     }

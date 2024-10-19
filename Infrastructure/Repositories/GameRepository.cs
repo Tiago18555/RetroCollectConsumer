@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,20 +15,17 @@ public class GameRepository : IGameRepository
         _context = context;
     }
 
-    public async Task<Game> AddAsync(Game game)
+    public async Task<Game> AddAsync(Game game, CancellationToken cts)
     {
-        await _context.Games.AddAsync(game);
-        await _context.SaveChangesAsync();
+        await _context.Games.AddAsync(game, cts);
+        await _context.SaveChangesAsync(cts);
         _context.Entry(game).State = EntityState.Detached;
 
         return game;
     }
 
-    public bool Any(Func<Game, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<Game, bool>> predicate, CancellationToken cts)
     {
-        return _context
-            .Games
-            .AsNoTracking()
-            .Any(predicate);
+        return await _context.Games.AsNoTracking().AnyAsync(predicate, cts);
     }
 }

@@ -17,21 +17,21 @@ public class DeleteComputerCollectionProcessor : IRequestProcessor
         _userComputerRepository = userComputerRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserComputer>(field);
-        var res = await DeleteComputerAsync(request);
+        var res = await DeleteComputerAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "delete-computer" };
     }
     
 
-    public async Task<ResponseModel> DeleteComputerAsync(UserComputer computer)
+    public async Task<ResponseModel> DeleteComputerAsync(UserComputer computer, CancellationToken cts)
     {
         try
         {
-            if (await _userComputerRepository.DeleteAsync(computer))
+            if (await _userComputerRepository.DeleteAsync(computer, cts))
             {
                 return ResponseFactory.Ok("Computer deleted");
             }

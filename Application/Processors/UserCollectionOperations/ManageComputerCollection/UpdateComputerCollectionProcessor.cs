@@ -27,20 +27,20 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
         _userComputerRepository = userComputerRepository;
         _searchComputer = searchComputer;
     }
-        public async Task<MessageModel> CreateProcessAsync(string message)
+        public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserComputer>(field);
-        var res = await UpdateComputerAsync(request);
+        var res = await UpdateComputerAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-computer" };
     }
 
-    public async Task<ResponseModel> UpdateComputerAsync(UserComputer newComputer)
+    public async Task<ResponseModel> UpdateComputerAsync(UserComputer newComputer, CancellationToken cts)
     {
         try
         {
-            if (!_computerRepository.Any(g => g.ComputerId == newComputer.ComputerId) && newComputer.ComputerId != 0)
+            if (! await _computerRepository.AnyAsync(g => g.ComputerId == newComputer.ComputerId, cts) && newComputer.ComputerId != 0)
             {
                 var result = await _searchComputer.RetrieveComputerInfoAsync(newComputer.ComputerId);
 
@@ -54,10 +54,10 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
                     Name = computerInfo.Name,
                     IsArcade = computerInfo.IsArcade
                 };
-                await _computerRepository.AddAsync(computer);
+                await _computerRepository.AddAsync(computer, cts);
             }
 
-            var res = await this._userComputerRepository.UpdateAsync(newComputer);
+            var res = await this._userComputerRepository.UpdateAsync(newComputer, cts);
 
             return res.MapObjectsTo(new UpdateComputerResponseModel()).Ok();
         }

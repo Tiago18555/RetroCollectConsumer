@@ -28,18 +28,18 @@ public class AddComputerCollectionProcessor : IRequestProcessor
         this._userComputerRepository = userComputerRepository;
         this._searchComputer = searchComputer;
     }
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<AddItemRequestModel>(field);
-        var res = await AddComputerAsync(request);
+        var res = await AddComputerAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-computer" };
     }
 
-    public async Task<ResponseModel> AddComputerAsync(AddItemRequestModel requestBody)
+    public async Task<ResponseModel> AddComputerAsync(AddItemRequestModel requestBody, CancellationToken cts)
     {
-        if (!_computerRepository.Any(g => g.ComputerId == requestBody.Item_id))
+        if (!await _computerRepository.AnyAsync(g => g.ComputerId == requestBody.Item_id, cts))
         {
             try
             {
@@ -57,7 +57,7 @@ public class AddComputerCollectionProcessor : IRequestProcessor
                 };
 
 
-                var res = await _computerRepository.AddAsync(computer);
+                var res = await _computerRepository.AddAsync(computer, cts);
             }
             catch (NullClaimException msg)
             {
@@ -94,7 +94,7 @@ public class AddComputerCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = await _userComputerRepository.AddAsync(userComputer);
+            var res = await _userComputerRepository.AddAsync(userComputer, cts);
             return res.MapObjectsTo(new AddComputerResponseModel()).Created();
         }
         catch (DBConcurrencyException)

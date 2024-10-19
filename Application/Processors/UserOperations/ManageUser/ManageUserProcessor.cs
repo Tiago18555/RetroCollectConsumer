@@ -21,12 +21,12 @@ public class ManageUserProcessor : IRequestProcessor
         this._dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UpdateUserRequest>(field);
 
-        var res = await UpdateUser(request);
+        var res = await UpdateUser(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-user" };
     }
@@ -34,12 +34,12 @@ public class ManageUserProcessor : IRequestProcessor
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public async Task<UpdateUserResponseModel> UpdateUser(UpdateUserRequest request)
+    public async Task<UpdateUserResponseModel> UpdateUser(UpdateUserRequest request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
-        User user = await _repository.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+        User user = await _repository.SingleOrDefaultAsync(x => x.UserId == request.UserId, cts);
 
-        var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow));
+        var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow), cts);
 
         StdOut.Info("User updated successfully");
         return res

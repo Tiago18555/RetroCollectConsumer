@@ -32,20 +32,20 @@ public class AddRatingProcessor : IRequestProcessor
         _searchGameService = searchGameService;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<AddRatingRequest>(field);
-        var res = await AddRatingAsync(request);
+        var res = await AddRatingAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-rating" };
     }
 
-    public async Task<ResponseModel> AddRatingAsync(AddRatingRequest requestBody)
+    public async Task<ResponseModel> AddRatingAsync(AddRatingRequest requestBody, CancellationToken cts)
     {
         try
         {
-            if (!_gameRepository.Any(g => g.GameId == requestBody.GameId))
+            if (!await _gameRepository.AnyAsync(g => g.GameId == requestBody.GameId, cts))
             {                    
                 var result = await _searchGameService.RetrieveGameInfoAsync(requestBody.GameId);
 
@@ -63,7 +63,7 @@ public class AddRatingProcessor : IRequestProcessor
                 };
 
 
-                await _gameRepository.AddAsync(game);                    
+                await _gameRepository.AddAsync(game, cts);                    
             }
 
             var newRating = requestBody.MapObjectTo(new Rating());
@@ -71,7 +71,7 @@ public class AddRatingProcessor : IRequestProcessor
             newRating.CreatedAt = _dateTimeProvider.UtcNow;
             newRating.UserId = requestBody.UserId;
 
-            var res = await _ratingRepository.AddAsync(newRating);
+            var res = await _ratingRepository.AddAsync(newRating, cts);
 
             return res
                 .MapObjectsTo(new AddRatingResponseModel())

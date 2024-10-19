@@ -26,7 +26,7 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
         _recoverRepository = recoverRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<SendEmailInfo>(field);

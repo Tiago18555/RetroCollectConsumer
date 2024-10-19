@@ -1,4 +1,6 @@
-﻿using Domain.Repositories;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
+using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Console = Domain.Entities.Console;
@@ -14,17 +16,17 @@ public class ConsoleRepository : IConsoleRepository
         _context = context;
     }
 
-    public async Task<Console> AddAsync(Console console)
+    public async Task<Console> AddAsync(Console console, CancellationToken cts)
     {
-        await _context.Consoles.AddAsync(console);
-        await _context.SaveChangesAsync();
+        await _context.Consoles.AddAsync(console, cts);
+        await _context.SaveChangesAsync(cts);
         _context.Entry(console).State = EntityState.Detached;
 
         return console;
     }
 
-    public bool Any(Func<Console, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<Console, bool>> predicate, CancellationToken cts)
     {
-        return _context.Consoles.AsNoTracking().Any(predicate);
+        return await _context.Consoles.AsNoTracking().AnyAsync(predicate, cts);
     }
 }

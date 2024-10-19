@@ -16,21 +16,22 @@ public class RemoveFromWishlistProcessor : IRequestProcessor
         _wishlistRepository = wishlistRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<Wishlist>(field);
-        var res = await RemoveAsync(request);
+        var res = await RemoveAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "remove-wishlist" };
     }
 
-    public async Task<ResponseModel> RemoveAsync(Wishlist requestBody)
+    public async Task<ResponseModel> RemoveAsync(Wishlist requestBody, CancellationToken cts)
     {
         try
         {
             var result = await _wishlistRepository.DeleteAsync(
-                new Wishlist { UserId = requestBody.UserId, GameId = requestBody.GameId }
+                new Wishlist { UserId = requestBody.UserId, GameId = requestBody.GameId }, 
+                cts
             );
 
             if (result) return "Successfully Deleted".Ok();

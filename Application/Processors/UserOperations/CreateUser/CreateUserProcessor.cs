@@ -26,11 +26,11 @@ public class CreateUserProcessor : IRequestProcessor
         this._config = config;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<CreateUserRequest>(field);
-        var res = await CreateUserAsync(request);
+        var res = await CreateUserAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "create-user" };
     }
@@ -46,7 +46,7 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="BCrypt.Net.SaltParseException"></exception>
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DBUpdateException"></exception>
-    public async Task<CreateUserResponseModel> CreateUserAsync(CreateUserRequest request)
+    public async Task<CreateUserResponseModel> CreateUserAsync(CreateUserRequest request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
         try
@@ -56,7 +56,7 @@ public class CreateUserProcessor : IRequestProcessor
             user.Password = BCryptNet.HashPassword(request.Password);
             user.CreatedAt = DateTime.Now;
 
-            var newUser = await this._repository.AddAsync(user);
+            var newUser = await this._repository.AddAsync(user, cts);
 
             await SendEmailToVerifyAsync(newUser);
             return newUser.MapObjectTo(new CreateUserResponseModel());

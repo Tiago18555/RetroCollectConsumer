@@ -20,26 +20,26 @@ public class EditRatingProcessor : IRequestProcessor
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<EditRatingRequest>(field);
-        var res = await EditRatingAsync(request);
+        var res = await EditRatingAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "edit-rating" };
     }
 
-    public async Task<ResponseModel> EditRatingAsync(EditRatingRequest requestBody)
+    public async Task<ResponseModel> EditRatingAsync(EditRatingRequest requestBody, CancellationToken cts)
     {
         try
         {
-            var foundRating = await _ratingRepository.SingleOrDefaultAsync(x => x.RatingId == requestBody.RatingId);
+            var foundRating = await _ratingRepository.SingleOrDefaultAsync(x => x.RatingId == requestBody.RatingId, cts);
 
             foundRating.RatingValue = requestBody.RatingValue == 0 ? foundRating.RatingValue : requestBody.RatingValue;
             foundRating.Review = String.IsNullOrEmpty(requestBody.Review) ? foundRating.Review : requestBody.Review;
             foundRating.UpdatedAt = _dateTimeProvider.UtcNow;
 
-            var res = await _ratingRepository.UpdateAsync(foundRating);
+            var res = await _ratingRepository.UpdateAsync(foundRating, cts);
             return
                 res
                 .MapObjectsTo(new EditRatingResponseModel())

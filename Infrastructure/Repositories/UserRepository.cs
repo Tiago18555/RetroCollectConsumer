@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using Domain.Repositories;
 using Infrastructure.Data;
+using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories;
 
@@ -15,35 +16,38 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User> AddAsync(User user)
+    public async Task<User> AddAsync(User user, CancellationToken cts)
     {
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await _context.Users.AddAsync(user, cts);
+        await _context.SaveChangesAsync(cts);
         _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }
 
-    public bool Any(Func<User, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<User, bool>> predicate, CancellationToken cts)
     {
-        return _context.Users.AsNoTracking().Any(predicate);
+        return await _context
+            .Users
+            .AsNoTracking()
+            .AnyAsync(predicate, cts);
     }
 
-    public async Task<User> SingleOrDefaultAsync(Func<User, bool> predicate)
+    public async Task<User> SingleOrDefaultAsync(Func<User, bool> predicate, CancellationToken cts)
     {
         return await _context
             .Users
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cts);
     }
 
-    public async Task<User> UpdateAsync(User user)
+    public async Task<User> UpdateAsync(User user, CancellationToken cts)
     {
         _context.Users.Update(user);
         _context.Entry(user).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cts);
 
         return user;
     }

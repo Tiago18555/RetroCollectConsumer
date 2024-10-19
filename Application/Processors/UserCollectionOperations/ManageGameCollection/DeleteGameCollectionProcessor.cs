@@ -17,20 +17,20 @@ public partial class DeleteGameCollectionProcessor : IRequestProcessor
         _userCollectionRepository = userCollectionRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserCollection>(field);
-        var res = await DeleteGameAsync(request);
+        var res = await DeleteGameAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "delete-game" };
     }
 
-    public async Task<ResponseModel> DeleteGameAsync(UserCollection collection)
+    public async Task<ResponseModel> DeleteGameAsync(UserCollection collection, CancellationToken cts)
     {
         try
         {
-            if (await _userCollectionRepository.DeleteAsync(collection))
+            if (await _userCollectionRepository.DeleteAsync(collection, cts))
             {
                 return ResponseFactory.Ok("Game deleted");
             }

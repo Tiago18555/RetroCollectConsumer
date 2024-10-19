@@ -17,20 +17,20 @@ public class DeleteConsoleCollectionProcessor : IRequestProcessor
         _userConsoleRepository = userConsoleRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserConsole>(field);
-        var res = await DeleteConsoleAsync(request);
+        var res = await DeleteConsoleAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "delete-console" };
     }
 
-    public async Task<ResponseModel> DeleteConsoleAsync(UserConsole console)
+    public async Task<ResponseModel> DeleteConsoleAsync(UserConsole console, CancellationToken cts)
     {
         try
         {
-            if (await _userConsoleRepository.DeleteAsync(console))
+            if (await _userConsoleRepository.DeleteAsync(console, cts))
             {
                 return ResponseFactory.Ok("Console deleted");
             }

@@ -31,18 +31,18 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
         _searchConsole = searchConsole;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<AddItemRequestModel>(field);
-        var res = await AddConsoleAsync(request);
+        var res = await AddConsoleAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-console" };
     }
 
-    public async Task<ResponseModel> AddConsoleAsync(AddItemRequestModel requestBody)
+    public async Task<ResponseModel> AddConsoleAsync(AddItemRequestModel requestBody, CancellationToken cts)
     {
-        if (!_consoleRepository.Any(g => g.ConsoleId == requestBody.Item_id))
+        if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == requestBody.Item_id, cts))
         {
             //Função adicionar console na entity Console=>
             var result = await _searchConsole.RetrieveConsoleInfoAsync(requestBody.Item_id);
@@ -60,7 +60,7 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
 
             try
             {
-                var res = await _consoleRepository.AddAsync(console);
+                var res = await _consoleRepository.AddAsync(console, cts);
             }
             catch (InvalidOperationException)
             {
@@ -93,7 +93,7 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = await _userConsoleRepository.AddAsync(userConsole);
+            var res = await _userConsoleRepository.AddAsync(userConsole, cts);
             return res.MapObjectsTo(new AddConsoleResponseModel()).Created();
         }
         catch (DBConcurrencyException)

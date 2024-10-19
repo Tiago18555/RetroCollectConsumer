@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +15,17 @@ public class ComputerRepository : IComputerRepository
         _context = context;
     }
 
-    public async Task<Computer> AddAsync(Computer computer)
+    public async Task<Computer> AddAsync(Computer computer, CancellationToken cts)
     {
-        await _context.Computers.AddAsync(computer);
-        await _context.SaveChangesAsync();
+        await _context.Computers.AddAsync(computer, cts);
+        await _context.SaveChangesAsync(cts);
         _context.Entry(computer).State = EntityState.Detached;
 
         return computer;
     }
 
-    public bool Any(Func<Computer, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<Computer, bool>> predicate, CancellationToken cts)
     {
-        return _context.Computers.AsNoTracking().Any(predicate);
+        return await _context.Computers.AsNoTracking().AnyAsync(predicate, cts);
     }
 }

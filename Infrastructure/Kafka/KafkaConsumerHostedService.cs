@@ -14,6 +14,8 @@ public class KafkaConsumerHostedService : IHostedService
         _serviceProvider = serviceProvider;
     }
 
+    public CancellationToken getToken() =>_cts.Token;
+
     public Task StartAsync(CancellationToken cancellationToken)
     {
         return Task.Factory.StartNew(async () =>

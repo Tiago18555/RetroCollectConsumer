@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,50 +15,50 @@ public class RatingRepository : IRatingRepository
         _context = context;
     
 
-    public async Task<Rating> AddAsync(Rating rating)
+    public async Task<Rating> AddAsync(Rating rating, CancellationToken cts)
     {
-        await _context.Ratings.AddAsync(rating);
-        await _context.SaveChangesAsync();
-        await _context.Entry(rating).Reference(x => x.Game).LoadAsync();
-        await _context.Entry(rating).Reference(x => x.User).LoadAsync();
+        await _context.Ratings.AddAsync(rating, cts);
+        await _context.SaveChangesAsync(cts);
+        await _context.Entry(rating).Reference(x => x.Game).LoadAsync(cts);
+        await _context.Entry(rating).Reference(x => x.User).LoadAsync(cts);
         _context.Entry(rating).State = EntityState.Detached;
 
         return rating;
     }    
 
-    public bool Any(Func<Rating, bool> predicate)
+    public async Task<bool> AnyAsync(Expression<Func<Rating, bool>> predicate, CancellationToken cts)
     {
-        return _context
+        return await _context
             .Ratings
             .AsNoTracking()
-            .Any(predicate);
+            .AnyAsync(predicate, cts);
     }
 
 
-    public async Task<bool> DeleteAsync(Rating rating)
+    public async Task<bool> DeleteAsync(Rating rating, CancellationToken cts)
     {
         _context.Ratings.Remove(rating);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cts);
 
-        return !_context.Ratings.Any(x => x.RatingId == rating.RatingId);
+        return !await _context.Ratings.AnyAsync(x => x.RatingId == rating.RatingId, cts);
     }
 
-    public async Task<Rating> SingleOrDefaultAsync(Func<Rating, bool> predicate)
+    public async Task<Rating> SingleOrDefaultAsync(Func<Rating, bool> predicate, CancellationToken cts)
     {
         return await _context
             .Ratings
             .Where(predicate)
             .AsQueryable()
             .AsNoTracking()
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cts);
     }
 
-    public async Task<Rating> UpdateAsync(Rating rating)
+    public async Task<Rating> UpdateAsync(Rating rating, CancellationToken cts)
     {
         _context.Ratings.Update(rating);
-        _context.Entry(rating).Reference(x => x.Game).Load();
-        _context.Entry(rating).Reference(x => x.User).Load();
-        await _context.SaveChangesAsync();
+        await _context.Entry(rating).Reference(x => x.Game).LoadAsync(cts);
+        await _context.Entry(rating).Reference(x => x.User).LoadAsync(cts);
+        await _context.SaveChangesAsync(cts);
 
         return rating;
     }

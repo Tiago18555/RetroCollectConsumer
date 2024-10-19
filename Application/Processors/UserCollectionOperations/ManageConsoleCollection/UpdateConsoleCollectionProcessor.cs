@@ -30,20 +30,20 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
         _searchConsole = searchConsole;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserConsole>(field);
-        var res = await UpdateConsoleAsync(request);
+        var res = await UpdateConsoleAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-console" };
     }
 
-    public async Task<ResponseModel> UpdateConsoleAsync(UserConsole newConsole)
+    public async Task<ResponseModel> UpdateConsoleAsync(UserConsole newConsole, CancellationToken cts)
     {
         try
         {
-            if (!_consoleRepository.Any(g => g.ConsoleId == newConsole.ConsoleId) && newConsole.ConsoleId != 0)
+            if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == newConsole.ConsoleId, cts) && newConsole.ConsoleId != 0)
             {
                 var result = await _searchConsole.RetrieveConsoleInfoAsync(newConsole.ConsoleId);
 
@@ -57,11 +57,11 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
                     Name= consoleInfo.Name,
                     IsPortable= consoleInfo.IsPortable                        
                 };
-                await _consoleRepository.AddAsync(console);
+                await _consoleRepository.AddAsync(console, cts);
 
             }
 
-            var res = await this._userConsoleRepository.UpdateAsync(newConsole);
+            var res = await this._userConsoleRepository.UpdateAsync(newConsole, cts);
 
             return res.MapObjectsTo(new UpdateConsoleResponseModel()).Ok();
         }

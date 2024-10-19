@@ -62,7 +62,7 @@ public class KafkaConsumerService: IConsumerService
 
                 var processor = _processorFactory.Create(messageType); //GET PROCESSOR TYPE
 
-                var processResult = await processor.CreateProcessAsync(result.Message.Value); //CALL
+                var processResult = await processor.CreateProcessAsync(result.Message.Value, cts); //CALL
 
                 var data = JsonSerializer.Serialize(result.Message.Value);
                 _logger.LogInformation($"GroupId: {_parameters.GroupId} Mensagem: {processResult}");

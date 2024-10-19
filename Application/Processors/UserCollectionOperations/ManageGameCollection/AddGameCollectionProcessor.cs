@@ -29,19 +29,19 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
         this._searchGame = searchGame;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<AddGameRequestModel>(field);
-        var res = await AddGameAsync(request);
+        var res = await AddGameAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-game" };
     }
 
-    public async Task<ResponseModel> AddGameAsync(AddGameRequestModel requestBody)
+    public async Task<ResponseModel> AddGameAsync(AddGameRequestModel requestBody, CancellationToken cts)
     {
 
-        if (!_gameRepository.Any(g => g.GameId == requestBody.Game_id))
+        if (! await _gameRepository.AnyAsync(g => g.GameId == requestBody.Game_id, cts))
         {
             try
             {
@@ -61,7 +61,7 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
                 };
 
 
-                await _gameRepository.AddAsync(game);
+                await _gameRepository.AddAsync(game, cts);
             }
             catch (InvalidOperationException)
             {
@@ -95,7 +95,7 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
                 PurchaseDate = requestBody.PurchaseDate == DateTime.MinValue ? DateTime.MinValue : requestBody.PurchaseDate
             };
 
-            var res = await _userCollectionRepository.AddAsync(userCollection);
+            var res = await _userCollectionRepository.AddAsync(userCollection, cts);
             return res.MapObjectsTo(new AddGameResponseModel()).Created();
         }
         catch (NullClaimException msg)

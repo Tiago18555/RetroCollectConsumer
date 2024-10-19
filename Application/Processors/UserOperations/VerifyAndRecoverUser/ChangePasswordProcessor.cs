@@ -30,20 +30,20 @@ public partial class ChangePasswordProcessor : IRequestProcessor
         _timeProvider = timeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<ChangePasswordInfo>(field);
 
-        var res = await ChangePasswordAsync(request);
+        var res = await ChangePasswordAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "change-password" };
     }
 
-    public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request)
+    public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
-        var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.UserId == request.userId);
+        var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.UserId == request.userId, cts);
 
         if (foundUser == null)            
             return ResponseFactory.NotFound("User Not Found");            
@@ -61,7 +61,7 @@ public partial class ChangePasswordProcessor : IRequestProcessor
 
         try
         {
-            await _userRepository.UpdateAsync(foundUser);
+            await _userRepository.UpdateAsync(foundUser, cts);
             await _recoverRepository.UpdateDocumentAsync("RecoverCollection", "UserId", foundUser.UserId, "Success", true);
 
             StdOut.Info("Password updated successfully");

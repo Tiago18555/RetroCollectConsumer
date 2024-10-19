@@ -16,19 +16,19 @@ public class RemoveRatingProcessor : IRequestProcessor
         _ratingRepository = ratingRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<Rating>(field);
-        var res = await RemoveRatingAsync(request);
+        var res = await RemoveRatingAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "remove-rating" };
     }
-    public async Task<ResponseModel> RemoveRatingAsync(Rating requestBody)
+    public async Task<ResponseModel> RemoveRatingAsync(Rating requestBody, CancellationToken cts)
     {
         try
         {
-            var success = await _ratingRepository.DeleteAsync(requestBody);
+            var success = await _ratingRepository.DeleteAsync(requestBody, cts);
 
             if (success)
             {

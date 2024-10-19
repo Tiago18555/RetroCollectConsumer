@@ -28,22 +28,22 @@ public partial class UpdateGameCollectionProcessor : IRequestProcessor
         _userCollectionRepository = userCollectionRepository;
         _searchGame = searchGame;
     }
-    public async Task<MessageModel> CreateProcessAsync(string message)
+    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserCollection>(field);
-        var res = await UpdateGameAsync(request);
+        var res = await UpdateGameAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-game" };
     }
     
 
-    public async Task<ResponseModel> UpdateGameAsync(UserCollection newGame)
+    public async Task<ResponseModel> UpdateGameAsync(UserCollection newGame, CancellationToken cts)
     {
 
         try
         {
-            if (!_gameRepository.Any(g => g.GameId == newGame.GameId) && newGame.GameId != 0)
+            if (! await _gameRepository.AnyAsync(g => g.GameId == newGame.GameId, cts) && newGame.GameId != 0)
             {
                 var result = await _searchGame.RetrieveGameInfoAsync(newGame.GameId);
 
@@ -60,11 +60,11 @@ public partial class UpdateGameCollectionProcessor : IRequestProcessor
                     ReleaseYear = gameInfo.FirstReleaseDate
                 };
 
-                await _gameRepository.AddAsync(game);
+                await _gameRepository.AddAsync(game, cts);
 
             }
 
-            var res = await this._userCollectionRepository.UpdateAsync(newGame);
+            var res = await this._userCollectionRepository.UpdateAsync(newGame, cts);
 
             return res.MapObjectsTo(new UpdateGameResponseModel()).Ok();
         }
