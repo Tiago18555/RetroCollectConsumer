@@ -6,6 +6,9 @@ using Application.Processors.UserOperations.VerifyAndRecoverUser;
 using Application.Processors.UserCollectionOperations.ManageGameCollection;
 using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 using Application.Processors.UserCollectionOperations.ManageComputerCollection;
+using Application.Processors.GameOperations.AddRating;
+using Application.Processors.GameOperations.ManageRating;
+using Application.Processors.UserWishlistOperations;
 
 namespace Application.Processors.ProcessorFactory;
 
@@ -29,7 +32,7 @@ public class RequestProcessorFactory : IRequestProcessorFactory
             "verify-recover-user" =>    _sp.GetService<VerifyAndRecoverUserProcessor>(),
 
 
-            /** GAME OPERATIONS **/
+            /** COLLECTION OPERATIONS **/
             "add-game" =>               _sp.GetService<AddGameCollectionProcessor>(),
             "delete-game" =>            _sp.GetService<DeleteGameCollectionProcessor>(),
             "update-game" =>            _sp.GetService<UpdateGameCollectionProcessor>(),
@@ -43,6 +46,13 @@ public class RequestProcessorFactory : IRequestProcessorFactory
             "update-computer" =>        _sp.GetService<UpdateComputerCollectionProcessor>(),
 
             /** USER WISHLIST OPERATIONS **/
+            "remove-wishlist" =>        _sp.GetService<RemoveFromWishlistProcessor>(),
+            "add-wishlist" =>           _sp.GetService<AddToWishlistProcessor>(),
+
+            /** RATING OPERATIONS **/
+            "add-rating" =>             _sp.GetService<AddRatingProcessor>(),
+            "edit-rating" =>            _sp.GetService<EditRatingProcessor>(),
+            "remove-rating" =>          _sp.GetService<RemoveRatingProcessor>(),
 
             _ => throw new ArgumentException($"Unknown message type: {s}")
         };
