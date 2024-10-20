@@ -14,36 +14,26 @@ public class MongoRepository: IRecoverRepository
         _context = context;
     }
 
-    public int CountFailedAttemptsSinceLastSuccess(Guid userId)
-    {
-        var collection = _context.GetCollection<BsonDocument>("RecoverCollection");
-
-        var successFilter = Builders<BsonDocument>.Filter.Eq("UserId", userId) & Builders<BsonDocument>.Filter.Eq("Success", true);
-        var lastSuccess = collection.Find(successFilter).Sort(Builders<BsonDocument>.Sort.Descending("Timestamp")).FirstOrDefault();
-
-        var failedFilter = Builders<BsonDocument>.Filter.Eq("UserId", userId) & Builders<BsonDocument>.Filter.Eq("Success", false);
-        if (lastSuccess != null)
-        {
-            var lastSuccessTime = lastSuccess["Timestamp"].ToUniversalTime();
-            failedFilter &= Builders<BsonDocument>.Filter.Gt("Timestamp", lastSuccessTime);
-        }
-
-        return (int)collection.CountDocuments(failedFilter);
-    }
-
-    public async Task<BsonDocument> InsertDocumentAsync(string collectionName, BsonDocument document)
+    public async Task<BsonDocument> InsertDocumentAsync(string collectionName, BsonDocument document, CancellationToken cts)
     {
         var collection = _context.GetCollection<BsonDocument>(collectionName);
-        await collection.InsertOneAsync(document);
+        await collection.InsertOneAsync(document, null, cts);
         return document;
     }
 
-    public async Task<BsonDocument> UpdateDocumentAsync<TValue>(string collectionName, string idFieldName, TValue idValue, string fieldNameToUpdate, BsonValue newValue)
+    public async Task<BsonDocument> UpdateDocumentAsync<TValue>(
+        string collectionName, 
+        string idFieldName, 
+        TValue idValue, 
+        string fieldNameToUpdate, 
+        BsonValue newValue, 
+        CancellationToken cts
+    )
     {
         var filter = Builders<BsonDocument>.Filter.Eq(idFieldName, BsonValue.Create(idValue));
         var update = Builders<BsonDocument>.Update.Set(fieldNameToUpdate, newValue);
         var collection = _context.GetCollection<BsonDocument>(collectionName);
-        return await collection.FindOneAndUpdateAsync(filter, update);            
+        return await collection.FindOneAndUpdateAsync(filter, update, null, cts);            
     }
 
     public bool Any(string collectionName, FilterDefinition<BsonDocument> filter)
@@ -61,10 +51,10 @@ public class MongoRepository: IRecoverRepository
         return await res.FirstOrDefaultAsync();
     }
 
-    public void DeleteDocument(string collectionName, string fieldName, string value)
+    public async Task DeleteDocumentAsync(string collectionName, string fieldName, string value, CancellationToken cts)
     {
         var filter = Builders<BsonDocument>.Filter.Eq(fieldName, value);
         var collection = _context.GetCollection<BsonDocument>(collectionName);
-        collection.DeleteOne(filter);
+        await collection.DeleteOneAsync(filter, null, cts);
     }
 }

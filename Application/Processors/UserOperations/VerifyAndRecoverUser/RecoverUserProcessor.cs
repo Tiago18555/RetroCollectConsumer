@@ -30,26 +30,26 @@ public partial class RecoverUserProcessor : IRequestProcessor
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<SendEmailInfo>(field);
-        var res = await SendEmail(request);
+        var res = await SendEmail(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "recover-user" };
     }
 
-    public async Task<ResponseModel> SendEmail(SendEmailInfo request)
+    public async Task<ResponseModel> SendEmail(SendEmailInfo request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
         string host = _config.GetSection("Host").Value;
 
         var resetInfo = new PasswordResetInfo
         {
-            UserId = request.UserId,
-            Timestamphash = request.TimeStampHash,
+            Username = request.Username,
+            TimeStampHash = request.TimeStampHash,
             Success = false
         };        
 
-        await _recoverRepository.InsertDocumentAsync("RecoverCollection", resetInfo.ToBsonDocument());
+        await _recoverRepository.InsertDocumentAsync("RecoverCollection", resetInfo.ToBsonDocument(), cts);
 
-        var resetLink = $"{host}auth/recover/{request.UserId}/{resetInfo.Timestamphash}";
+        var resetLink = $"{host}auth/recover/{request.Username}/{resetInfo.TimeStampHash}";
 
         var template = await File.ReadAllTextAsync(
             Path.Combine(
@@ -72,10 +72,10 @@ public partial class RecoverUserProcessor : IRequestProcessor
             email.Body = new TextPart(TextFormat.Html) { Text = body };
 
             using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+            await smtp.ConnectAsync(_config.GetSection("Email:Host").Value, 587, SecureSocketOptions.StartTls, cts);
+            await smtp.AuthenticateAsync(_config.GetSection("Email:Username").Value, _config.GetSection("Email:Password").Value, cts);
+            await smtp.SendAsync(email, cts);
+            await smtp.DisconnectAsync(true, cts);
 
             StdOut.Info("Email sent");
 

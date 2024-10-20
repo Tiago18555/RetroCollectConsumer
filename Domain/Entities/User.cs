@@ -7,6 +7,7 @@ public class User
     [Key]
     public Guid UserId { get; set; }
 
+    [Required]
     [MinLength(3)]
     [MaxLength(255)]
     public string Username { get; set; }

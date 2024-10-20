@@ -82,7 +82,7 @@ public class CreateUserProcessor : IRequestProcessor
         }
         string host = _config.GetSection("Host").Value;
 
-        var verificationLink = $"{host}auth/verify/{user.UserId}";
+        var verificationLink = $"{host}auth/verify/{user.Username}";
 
         var template = await File.ReadAllTextAsync(
             Path.Combine(
