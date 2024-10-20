@@ -33,7 +33,7 @@ public class UserRepository : IUserRepository
             .AnyAsync(predicate, cts);
     }
 
-    public async Task<User> SingleOrDefaultAsync(Func<User, bool> predicate, CancellationToken cts)
+    public async Task<User> SingleOrDefaultAsync(Expression<Func<User, bool>> predicate, CancellationToken cts)
     {
         return await _context
             .Users
@@ -48,6 +48,7 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         _context.Entry(user).State = EntityState.Modified;
         await _context.SaveChangesAsync(cts);
+        _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }

@@ -12,12 +12,12 @@ using System.Text.Json;
 
 namespace Application.Processors.UserOperations.VerifyAndRecoverUser;
 
-public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
+public partial class RecoverUserProcessor : IRequestProcessor
 {
     private readonly IConfiguration _config;
     private readonly IRecoverRepository _recoverRepository;
 
-    public VerifyAndRecoverUserProcessor(
+    public RecoverUserProcessor(
         IConfiguration config, 
         IRecoverRepository recoverRepository
     )
@@ -32,7 +32,7 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
         var request = JsonSerializer.Deserialize<SendEmailInfo>(field);
         var res = await SendEmail(request);
 
-        return new MessageModel{ Message = res, SourceType = "verify-recover-user" };
+        return new MessageModel{ Message = res, SourceType = "recover-user" };
     }
 
     public async Task<ResponseModel> SendEmail(SendEmailInfo request)
@@ -43,14 +43,13 @@ public partial class VerifyAndRecoverUserProcessor : IRequestProcessor
         var resetInfo = new PasswordResetInfo
         {
             UserId = request.UserId,
-            Hash = request.TimeStampHash,
-            Timestamp = request.TimeStampHash,
+            Timestamphash = request.TimeStampHash,
             Success = false
         };        
 
         await _recoverRepository.InsertDocumentAsync("RecoverCollection", resetInfo.ToBsonDocument());
 
-        var resetLink = $"{host}auth/recover/{request.UserId}/{resetInfo.Timestamp}";
+        var resetLink = $"{host}auth/recover/{request.UserId}/{resetInfo.Timestamphash}";
 
         var template = await File.ReadAllTextAsync(
             Path.Combine(

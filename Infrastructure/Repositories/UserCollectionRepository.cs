@@ -42,7 +42,7 @@ public class UserCollectionRepository : IUserCollectionRepository
         return !await _context.UserCollections.AnyAsync(x => x.UserCollectionId == user.UserCollectionId, cts); //NONE MATCH
     }
 
-    public async Task<UserCollection> SingleOrDefaultAsync(Func<UserCollection, bool> predicate, CancellationToken cts)
+    public async Task<UserCollection> SingleOrDefaultAsync(Expression<Func<UserCollection, bool>> predicate, CancellationToken cts)
     {
         return await _context
             .UserCollections
@@ -58,6 +58,7 @@ public class UserCollectionRepository : IUserCollectionRepository
         await _context.Entry(user).Reference(x => x.Game).LoadAsync(cts);
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
+        _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }

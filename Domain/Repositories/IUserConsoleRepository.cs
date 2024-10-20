@@ -19,7 +19,7 @@ public interface IUserConsoleRepository
 
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    Task<UserConsole> SingleOrDefaultAsync(Func<UserConsole, bool> predicate, CancellationToken cts);
+    Task<UserConsole> SingleOrDefaultAsync(Expression<Func<UserConsole, bool>> predicate, CancellationToken cts);
 
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DbUpdateException"></exception>

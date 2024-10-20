@@ -41,7 +41,7 @@ public class UserComputerRepository : IUserComputerRepository
         return !await _context.UserComputers.AnyAsync(x => x.UserComputerId == user.UserComputerId, cts); //NONE MATCH
     }
 
-    public async Task<UserComputer> SingleOrDefaultAsync(Func<UserComputer, bool> predicate, CancellationToken cts)
+    public async Task<UserComputer> SingleOrDefaultAsync(Expression<Func<UserComputer, bool>> predicate, CancellationToken cts)
     {
         return await _context
             .UserComputers
@@ -56,6 +56,7 @@ public class UserComputerRepository : IUserComputerRepository
         _context.UserComputers.Update(user);;
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
+        _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }

@@ -42,7 +42,7 @@ public class UserConsoleRepository : IUserConsoleRepository
         return ! await _context.UserConsoles.AnyAsync(x => x.UserConsoleId == user.UserConsoleId, cts); //NONE MATCH
     }
 
-    public async Task<UserConsole> SingleOrDefaultAsync(Func<UserConsole, bool> predicate, CancellationToken cts)
+    public async Task<UserConsole> SingleOrDefaultAsync(Expression<Func<UserConsole, bool>> predicate, CancellationToken cts)
     {
         return await _context
             .UserConsoles
@@ -57,6 +57,7 @@ public class UserConsoleRepository : IUserConsoleRepository
         _context.UserConsoles.Update(user);
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
+        _context.Entry(user).State = EntityState.Detached;
 
         return user;
     }

@@ -19,7 +19,7 @@ public interface IUserComputerRepository
 
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    Task<UserComputer> SingleOrDefaultAsync(Func<UserComputer, bool> predicate, CancellationToken cts);
+    Task<UserComputer> SingleOrDefaultAsync(Expression<Func<UserComputer, bool>> predicate, CancellationToken cts);
 
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DbUpdateException"></exception>

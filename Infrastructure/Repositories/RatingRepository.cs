@@ -59,6 +59,7 @@ public class RatingRepository : IRatingRepository
         await _context.Entry(rating).Reference(x => x.Game).LoadAsync(cts);
         await _context.Entry(rating).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
+        _context.Entry(rating).State = EntityState.Detached;
 
         return rating;
     }

@@ -29,7 +29,8 @@ public class RequestProcessorFactory : IRequestProcessorFactory
             "create-user" =>            _sp.GetService<CreateUserProcessor>(),
             "update-user" =>            _sp.GetService<ManageUserProcessor>(),
             "change-password" =>        _sp.GetService<ChangePasswordProcessor>(),
-            "verify-recover-user" =>    _sp.GetService<VerifyAndRecoverUserProcessor>(),
+            "recover-user" =>           _sp.GetService<RecoverUserProcessor>(),
+            "verify-user" =>            _sp.GetService<VerifyUserProcessor>(),
 
 
             /** COLLECTION OPERATIONS **/

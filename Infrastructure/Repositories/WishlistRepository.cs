@@ -42,7 +42,7 @@ public class WishlistRepository : IWishlistRepository
 
         return res;
     }
-    public async Task<Wishlist> SingleOrDefaultAsync(Func<Wishlist, bool> predicate, CancellationToken cts)
+    public async Task<Wishlist> SingleOrDefaultAsync(Expression<Func<Wishlist, bool>> predicate, CancellationToken cts)
     {
         return await _context
             .Wishlists

@@ -2,19 +2,19 @@ using Domain.Broker;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 
+using Application.Processors.ProcessorFactory;
 using Application.Processors.UserOperations.CreateUser;
 using Application.Processors.UserOperations.ManageUser;
 using Application.Processors.UserOperations.VerifyAndRecoverUser;
-using Application.Processors.ProcessorFactory;
 using Application.Processors.UserCollectionOperations.ManageComputerCollection;
 using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 using Application.Processors.UserCollectionOperations.ManageGameCollection;
-using Application.IgdbIntegrationOperations.SearchComputer;
-using Application.IgdbIntegrationOperations.SearchConsole;
-using Application.IgdbIntegrationOperations.SearchGame;
 using Application.Processors.UserWishlistOperations;
 using Application.Processors.GameOperations.AddRating;
 using Application.Processors.GameOperations.ManageRating;
+using Application.IgdbIntegrationOperations.SearchComputer;
+using Application.IgdbIntegrationOperations.SearchConsole;
+using Application.IgdbIntegrationOperations.SearchGame;
 
 namespace Application.DependencyInjection;
 
@@ -27,8 +27,9 @@ public static class ApplicationExtension
         /** USER OPERATIONS **/
         services.AddScoped<CreateUserProcessor>();
         services.AddScoped<ManageUserProcessor>();
-        services.AddScoped<VerifyAndRecoverUserProcessor>();
+        services.AddScoped<RecoverUserProcessor>();
         services.AddScoped<ChangePasswordProcessor>();
+        services.AddScoped<VerifyUserProcessor>();
 
         /** COLLECTION OPERATIONS **/
         services.AddScoped<AddComputerCollectionProcessor>();

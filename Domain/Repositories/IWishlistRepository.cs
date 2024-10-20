@@ -19,5 +19,5 @@ public interface IWishlistRepository
 
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    Task<Wishlist> SingleOrDefaultAsync(Func<Wishlist, bool> predicate, CancellationToken cts);
+    Task<Wishlist> SingleOrDefaultAsync(Expression<Func<Wishlist, bool>> predicate, CancellationToken cts);
 }

@@ -16,7 +16,7 @@ public interface IUserRepository
 
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    Task<User> SingleOrDefaultAsync(Func<User, bool> predicate, CancellationToken cts);
+    Task<User> SingleOrDefaultAsync(Expression<Func<User, bool>> predicate, CancellationToken cts);
 
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DbUpdateException"></exception>
