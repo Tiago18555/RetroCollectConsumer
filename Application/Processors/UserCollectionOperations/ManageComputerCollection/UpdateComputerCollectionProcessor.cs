@@ -8,6 +8,7 @@ using CrossCutting;
 using Domain.Broker;
 using Application.IgdbIntegrationOperations.SearchComputer;
 using System.Text.Json;
+using Application.Processors.UserCollectionOperations.Shared;
 
 namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
 
@@ -30,19 +31,24 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
         public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
-        var request = JsonSerializer.Deserialize<UserComputer>(field);
+
+        StdOut.Warning(field);
+
+        var request = JsonSerializer.Deserialize<UpdateComputerRequest>(field);
         var res = await UpdateComputerAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-computer" };
     }
 
-    public async Task<ResponseModel> UpdateComputerAsync(UserComputer newComputer, CancellationToken cts)
+    public async Task<ResponseModel> UpdateComputerAsync(UpdateComputerRequest request, CancellationToken cts)
     {
         try
         {
-            if (! await _computerRepository.AnyAsync(g => g.ComputerId == newComputer.ComputerId, cts) && newComputer.ComputerId != 0)
+            var foundComputer = await _userComputerRepository.SingleOrDefaultAsync(x => x.UserComputerId == request.UserComputerId, cts);
+
+            if (! await _computerRepository.AnyAsync(g => g.ComputerId == foundComputer.ComputerId, cts) && foundComputer.ComputerId != 0)
             {
-                var result = await _searchComputer.RetrieveComputerInfoAsync(newComputer.ComputerId);
+                var result = await _searchComputer.RetrieveComputerInfoAsync(foundComputer.ComputerId);
 
                 var computerInfo = result.Single();
 
@@ -54,8 +60,11 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
                     Name = computerInfo.Name,
                     IsArcade = computerInfo.IsArcade
                 };
+
                 await _computerRepository.AddAsync(computer, cts);
             }
+
+            var newComputer = foundComputer.MapAndFill<UserComputer, UpdateComputerRequest>(request);
 
             var res = await this._userComputerRepository.UpdateAsync(newComputer, cts);
 

@@ -22,4 +22,8 @@ public interface IUserCollectionRepository
     /// <exception cref="ArgumentNullException"></exception>
     /// <returns>The entity found, or <see langword="null" />.</returns>
     Task<UserCollection> UpdateAsync(UserCollection user, CancellationToken cts);
+    
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    Task<UserCollection> SingleOrDefaultAsync(Expression<Func<UserCollection, bool>> predicate, CancellationToken cts);
 }

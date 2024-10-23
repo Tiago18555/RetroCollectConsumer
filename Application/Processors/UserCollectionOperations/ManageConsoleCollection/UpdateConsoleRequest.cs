@@ -1,13 +1,13 @@
 ﻿using CrossCutting.Validations;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
+namespace Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 
-public class UpdateComputerRequestModel
+public class UpdateConsoleRequest
 {
-    public Guid User_id { get; set; }
-    public int Item_id { get; set; }
-    public Guid UserComputerId { get; set; }
+    public Guid UserId { get; set; }
+
+    public Guid UserConsoleId { get; set; }
     public DateTime PurchaseDate { get; set; }
     public string Condition { get; set; }
     public string OwnershipStatus { get; set; }

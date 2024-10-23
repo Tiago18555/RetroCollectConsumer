@@ -9,6 +9,7 @@ using Domain.Broker;
 using Domain.Repositories;
 using Application.IgdbIntegrationOperations.SearchConsole;
 using System.Text.Json;
+using Application.Processors.UserCollectionOperations.Shared;
 
 namespace Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 
@@ -33,19 +34,20 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
     public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
-        var request = JsonSerializer.Deserialize<UserConsole>(field);
+        var request = JsonSerializer.Deserialize<UpdateConsoleRequest>(field);
         var res = await UpdateConsoleAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "update-console" };
     }
 
-    public async Task<ResponseModel> UpdateConsoleAsync(UserConsole newConsole, CancellationToken cts)
+    public async Task<ResponseModel> UpdateConsoleAsync(UpdateConsoleRequest request, CancellationToken cts)
     {
         try
         {
-            if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == newConsole.ConsoleId, cts) && newConsole.ConsoleId != 0)
+            var foundConsole = await _userConsoleRepository.SingleOrDefaultAsync(x => x.UserConsoleId == request.UserConsoleId, cts);
+            if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == foundConsole.ConsoleId, cts) && foundConsole.ConsoleId != 0)
             {
-                var result = await _searchConsole.RetrieveConsoleInfoAsync(newConsole.ConsoleId);
+                var result = await _searchConsole.RetrieveConsoleInfoAsync(foundConsole.ConsoleId);
 
                 var consoleInfo = result.Single();
 
@@ -60,6 +62,8 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
                 await _consoleRepository.AddAsync(console, cts);
 
             }
+
+            var newConsole = foundConsole.MapAndFill<UserConsole, UpdateConsoleRequest>(request);
 
             var res = await this._userConsoleRepository.UpdateAsync(newConsole, cts);
 
