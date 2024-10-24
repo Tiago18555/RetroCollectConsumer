@@ -43,17 +43,17 @@ public partial class ChangePasswordProcessor : IRequestProcessor
     public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
-        var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.Username == request.username, cts);
+        var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.Username == request.Username, cts);
 
         if (foundUser == null)            
             return ResponseFactory.NotFound("User Not Found");            
 
-        if (!IsValidTimestampHash(request.timestampHash))            
+        if (!IsValidTimestampHash(request.TimestampHash))            
             return "Password reset request has expired or is invalid".Ok();
         
-        var hashedNewPassword = BCryptNet.HashPassword(request.password);
+        var hashedNewPassword = BCryptNet.HashPassword(request.Password);
 
-        if (BCryptNet.Verify(request.password, foundUser.Password))            
+        if (BCryptNet.Verify(request.Password, foundUser.Password))            
             return "New password cannot be equal to the old one".Ok();           
 
         foundUser.Password = hashedNewPassword;

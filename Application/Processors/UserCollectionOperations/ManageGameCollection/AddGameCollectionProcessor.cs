@@ -32,20 +32,20 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
     public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
-        var request = JsonSerializer.Deserialize<AddGameRequestModel>(field);
+        var request = JsonSerializer.Deserialize<AddGameRequest>(field);
         var res = await AddGameAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-game" };
     }
 
-    public async Task<ResponseModel> AddGameAsync(AddGameRequestModel requestBody, CancellationToken cts)
+    public async Task<ResponseModel> AddGameAsync(AddGameRequest requestBody, CancellationToken cts)
     {
 
-        if (! await _gameRepository.AnyAsync(g => g.GameId == requestBody.Game_id, cts))
+        if (! await _gameRepository.AnyAsync(g => g.GameId == requestBody.GameId, cts))
         {
             try
             {
-                var result = await _searchGame.RetrieveGameInfoAsync(requestBody.Game_id);
+                var result = await _searchGame.RetrieveGameInfoAsync(requestBody.GameId);
 
                 var gameInfo = result.Single();
 
@@ -85,10 +85,11 @@ public partial class AddGameCollectionProcessor : IRequestProcessor
         {
             UserCollection userCollection = new()
             {
-                ConsoleId = requestBody.PlatformIsComputer == false ? requestBody.Platform_id : 0,
-                ComputerId = requestBody.PlatformIsComputer == true ? requestBody.Platform_id : 0,
-                GameId = requestBody.Game_id,
-                UserId = requestBody.User_id,
+                ConsoleId = requestBody.PlatformIsComputer == false ? requestBody.PlatformId : 0,
+                ComputerId = requestBody.PlatformIsComputer == true ? requestBody.PlatformId : 0,
+                GameId = requestBody.GameId,
+                UserId = requestBody.UserId,
+
                 Condition = Enum.Parse<Condition>(requestBody.Condition.ToCapitalize(typeof(Condition))),
                 OwnershipStatus = Enum.Parse<OwnershipStatus>(requestBody.OwnershipStatus.ToCapitalize(typeof(OwnershipStatus))),
                 Notes = requestBody.Notes == null ? null : requestBody.Notes,

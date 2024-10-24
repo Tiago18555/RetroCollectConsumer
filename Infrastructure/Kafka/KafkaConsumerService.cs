@@ -42,6 +42,7 @@ public class KafkaConsumerService: IConsumerService
         _consumer = new ConsumerBuilder<Ignore, string>(_consumerConfig).Build();
     }
 
+
     private string GetMessageType(string message)
     {  
         var _object = JsonSerializer.Deserialize(message, typeof(MessageModel)) as MessageModel;
@@ -80,14 +81,17 @@ public class KafkaConsumerService: IConsumerService
             }
             finally
             {
-                
+                await StopAsync(cts);
             }
         }
+
+        return;
     }
 
     public Task StopAsync(CancellationToken cts)
     {
         _consumer.Close();
+        StdOut.Error("Application stopped. Connection closed");
         _logger.LogInformation("Application stopped. Connection closed");
         return Task.CompletedTask;
     }

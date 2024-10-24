@@ -1,6 +1,7 @@
 using Domain.Broker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using CrossCutting;
 
 namespace Infrastructure.Kafka;
 
@@ -18,14 +19,14 @@ public class KafkaConsumerHostedService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        return Task.Factory.StartNew(async () =>
+        return Task.Run(async () =>
         {
             using (var scope = _serviceProvider.CreateScope())
             {
                 var consumerService = scope.ServiceProvider.GetRequiredService<IConsumerService>();
                 await consumerService.ConsumeAsync(_cts.Token);
             }
-        }, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+        }, _cts.Token);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

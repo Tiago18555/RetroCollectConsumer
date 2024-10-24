@@ -31,19 +31,19 @@ public class AddComputerCollectionProcessor : IRequestProcessor
     public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
-        var request = JsonSerializer.Deserialize<AddItemRequestModel>(field);
+        var request = JsonSerializer.Deserialize<AddItemRequest>(field);
         var res = await AddComputerAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-computer" };
     }
 
-    public async Task<ResponseModel> AddComputerAsync(AddItemRequestModel requestBody, CancellationToken cts)
+    public async Task<ResponseModel> AddComputerAsync(AddItemRequest requestBody, CancellationToken cts)
     {
-        if (!await _computerRepository.AnyAsync(g => g.ComputerId == requestBody.Item_id, cts))
+        try
         {
-            try
+            if (!await _computerRepository.AnyAsync(g => g.ComputerId == requestBody.ItemId, cts))
             {
-                var result = await _searchComputer.RetrieveComputerInfoAsync(requestBody.Item_id);
+                var result = await _searchComputer.RetrieveComputerInfoAsync(requestBody.ItemId);
 
                 var computerInfo = result.Single();
 
@@ -57,37 +57,13 @@ public class AddComputerCollectionProcessor : IRequestProcessor
                 };
 
 
-                var res = await _computerRepository.AddAsync(computer, cts);
+                await _computerRepository.AddAsync(computer, cts);
             }
-            catch (NullClaimException msg)
-            {
-                return ResponseFactory.BadRequest(msg.ToString());
-            }
-            catch (InvalidOperationException)
-            {
-                throw;
-            }
-            catch (ArgumentNullException)
-            {
-                throw;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
-            catch (DbUpdateException)
-            {
-                throw;
-            }
-        }
 
-
-        try
-        {
             UserComputer userComputer = new()
             {
-                ComputerId = requestBody.Item_id,
-                UserId = requestBody.User_id,
+                ComputerId = requestBody.ItemId,
+                UserId = requestBody.UserId,
                 Condition = Enum.Parse<Condition>(requestBody.Condition.ToCapitalize(typeof(Condition))),
                 OwnershipStatus = Enum.Parse<OwnershipStatus>(requestBody.OwnershipStatus.ToCapitalize(typeof(OwnershipStatus))),
                 Notes = requestBody.Notes == null ? null : requestBody.Notes,
@@ -102,6 +78,22 @@ public class AddComputerCollectionProcessor : IRequestProcessor
             throw;
         }
         catch (DbUpdateConcurrencyException)
+        {
+            throw;
+        }
+        catch (DbUpdateException)
+        {
+            throw;
+        }
+        catch (NullClaimException msg)
+        {
+            return ResponseFactory.BadRequest(msg.ToString());
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (ArgumentNullException)
         {
             throw;
         }

@@ -34,59 +34,39 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
     public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
-        var request = JsonSerializer.Deserialize<AddItemRequestModel>(field);
+        var request = JsonSerializer.Deserialize<AddItemRequest>(field);
         var res = await AddConsoleAsync(request, cts);
 
         return new MessageModel{ Message = res, SourceType = "add-console" };
     }
 
-    public async Task<ResponseModel> AddConsoleAsync(AddItemRequestModel requestBody, CancellationToken cts)
+    public async Task<ResponseModel> AddConsoleAsync(AddItemRequest requestBody, CancellationToken cts)
     {
-        if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == requestBody.Item_id, cts))
-        {
-            //Função adicionar console na entity Console=>
-            var result = await _searchConsole.RetrieveConsoleInfoAsync(requestBody.Item_id);
-
-            var consoleInfo = result.Single();
-
-            Console console = new()
-            {
-                ConsoleId = consoleInfo.ConsoleId,
-                Description = consoleInfo.Description,
-                ImageUrl = consoleInfo.ImageUrl,
-                Name = consoleInfo.Name,
-                IsPortable = consoleInfo.IsPortable
-            };
-
-            try
-            {
-                var res = await _consoleRepository.AddAsync(console, cts);
-            }
-            catch (InvalidOperationException)
-            {
-                throw;
-            }
-            catch (ArgumentNullException)
-            {
-                throw;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
-            catch (DbUpdateException)
-            {
-                throw;
-            }
-        }
-
-
         try
         {
+            if (! await _consoleRepository.AnyAsync(g => g.ConsoleId == requestBody.ItemId, cts))
+            {
+                var result = await _searchConsole.RetrieveConsoleInfoAsync(requestBody.ItemId);
+
+                var consoleInfo = result.Single();
+
+                Console console = new()
+                {
+                    ConsoleId = consoleInfo.ConsoleId,
+                    Description = consoleInfo.Description,
+                    ImageUrl = consoleInfo.ImageUrl,
+                    Name = consoleInfo.Name,
+                    IsPortable = consoleInfo.IsPortable
+                };
+
+                await _consoleRepository.AddAsync(console, cts);
+            }
+
+
             UserConsole userConsole = new()
             {
-                ConsoleId = requestBody.Item_id,
-                UserId = requestBody.User_id,
+                ConsoleId = requestBody.ItemId,
+                UserId = requestBody.UserId,
                 Condition = Enum.Parse<Condition>(requestBody.Condition.ToCapitalize(typeof(Condition))),
                 OwnershipStatus = Enum.Parse<OwnershipStatus>(requestBody.OwnershipStatus.ToCapitalize(typeof(OwnershipStatus))),
                 Notes = requestBody.Notes == null ? null : requestBody.Notes,
@@ -96,11 +76,16 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
             var res = await _userConsoleRepository.AddAsync(userConsole, cts);
             return res.MapObjectsTo(new AddConsoleResponseModel()).Created();
         }
+        
         catch (DBConcurrencyException)
         {
             throw;
         }
         catch (DbUpdateConcurrencyException)
+        {
+            throw;
+        }
+        catch (DbUpdateException)
         {
             throw;
         }
@@ -115,6 +100,14 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
         catch (NullClaimException msg)
         {
             return ResponseFactory.BadRequest(msg.ToString());
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (ArgumentNullException)
+        {
+            throw;
         }
     }
 }
