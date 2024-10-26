@@ -53,7 +53,8 @@ public class UserComputerRepository : IUserComputerRepository
 
     public async Task<UserComputer> UpdateAsync(UserComputer user, CancellationToken cts)
     {
-        _context.UserComputers.Update(user);;
+        _context.UserComputers.Update(user);
+        _context.Entry(user).State = EntityState.Modified;
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
         _context.Entry(user).State = EntityState.Detached;

@@ -8,7 +8,7 @@ public static class Helper
 {
     public static async Task<T> IgdbPostAsync<T>(this HttpClient httpClient, string query, string endpoint)
     {
-        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
 
         StdOut.Warning($"ENVIROMENT NAME: {environment}");
 

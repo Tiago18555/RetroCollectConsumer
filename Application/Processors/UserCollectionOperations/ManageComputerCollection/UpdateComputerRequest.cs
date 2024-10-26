@@ -1,7 +1,4 @@
-﻿using CrossCutting.Validations;
-using System.ComponentModel.DataAnnotations;
-
-namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
+﻿namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
 
 public class UpdateComputerRequest
 {

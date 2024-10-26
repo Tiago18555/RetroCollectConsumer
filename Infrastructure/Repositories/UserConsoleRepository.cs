@@ -55,6 +55,7 @@ public class UserConsoleRepository : IUserConsoleRepository
     public async Task<UserConsole> UpdateAsync(UserConsole user, CancellationToken cts)
     {
         _context.UserConsoles.Update(user);
+        _context.Entry(user).State = EntityState.Modified;
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);
         _context.Entry(user).State = EntityState.Detached;

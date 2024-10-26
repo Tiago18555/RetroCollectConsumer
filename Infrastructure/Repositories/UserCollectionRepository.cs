@@ -55,6 +55,7 @@ public class UserCollectionRepository : IUserCollectionRepository
     public async Task<UserCollection> UpdateAsync(UserCollection user, CancellationToken cts)
     {
         _context.UserCollections.Update(user);
+        _context.Entry(user).State = EntityState.Modified;
         await _context.Entry(user).Reference(x => x.Game).LoadAsync(cts);
         await _context.Entry(user).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);

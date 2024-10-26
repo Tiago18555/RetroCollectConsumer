@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using CrossCutting;
 
 namespace Infrastructure.Kafka;
-public class KafkaConsumerService: IConsumerService
+public partial class KafkaConsumerService: IConsumerService
 {
     private readonly IRequestProcessorFactory _processorFactory;
     private readonly ILogger<KafkaConsumerService> _logger;
@@ -52,6 +52,7 @@ public class KafkaConsumerService: IConsumerService
     public async Task ConsumeAsync(CancellationToken cts)
     {
         _logger.LogInformation("Waiting messages");
+        await CreateTopicIfNotExistsAsync(_parameters.TopicName);
         _consumer.Subscribe(_parameters.TopicName);
 
         while (!cts.IsCancellationRequested)
@@ -66,12 +67,12 @@ public class KafkaConsumerService: IConsumerService
                 var processResult = await processor.CreateProcessAsync(result.Message.Value, cts); //CALL
 
                 var data = JsonSerializer.Serialize(result.Message.Value);
-                _logger.LogInformation($"GroupId: {_parameters.GroupId} Mensagem: {processResult}");
+                _logger.LogInformation("GroupId: {@GroupId} Message: {Message}", _parameters, processResult.Message);
                 _logger.LogInformation(data.ToString());
             }
             catch(ConsumeException err)
             {
-                _logger.LogInformation("There's no topic of this message.");
+                _logger.LogError(err, "There's no topic of this message.");
                 StdOut.Error($"Consume error: \n{err.Message}");
             }
             catch(DbUpdateException err)
@@ -100,5 +101,5 @@ public class KafkaConsumerService: IConsumerService
     {
         throw new NotImplementedException();
     }
-}
 
+}

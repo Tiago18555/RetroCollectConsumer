@@ -56,6 +56,7 @@ public class RatingRepository : IRatingRepository
     public async Task<Rating> UpdateAsync(Rating rating, CancellationToken cts)
     {
         _context.Ratings.Update(rating);
+        _context.Entry(rating).State = EntityState.Modified;
         await _context.Entry(rating).Reference(x => x.Game).LoadAsync(cts);
         await _context.Entry(rating).Reference(x => x.User).LoadAsync(cts);
         await _context.SaveChangesAsync(cts);

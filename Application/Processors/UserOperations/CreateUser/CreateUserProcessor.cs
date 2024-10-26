@@ -32,6 +32,9 @@ public class CreateUserProcessor : IRequestProcessor
         var request = JsonSerializer.Deserialize<CreateUserRequest>(field);
         var res = await CreateUserAsync(request, cts);
 
+        // call metodo principal void (chamar funções menores (bool)...)
+
+
         return new MessageModel{ Message = res, SourceType = "create-user" };
     }
 

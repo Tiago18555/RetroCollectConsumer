@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Application.Processors.GameOperations.AddRating;
+﻿namespace Application.Processors.GameOperations.AddRating;
 
 public class AddRatingRequest
 {

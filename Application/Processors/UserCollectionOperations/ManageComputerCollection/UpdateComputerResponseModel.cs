@@ -3,6 +3,7 @@ using Domain.Enums;
 
 namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
 
+#pragma warning disable IDE1006 // Naming Styles
 public class UpdateComputerResponseModel
 {
     public Guid UserCollectionId { get; set; }
@@ -19,3 +20,4 @@ public class UpdateComputerResponseModel
     public InternalUser User { get; set; }
     public InternalComputer Computer {  get; set; }
 }
+#pragma warning restore IDE1006 // Naming Styles
