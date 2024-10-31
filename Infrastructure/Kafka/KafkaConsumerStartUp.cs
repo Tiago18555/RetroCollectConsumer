@@ -1,18 +1,16 @@
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using CrossCutting;
-using Domain.Broker;
-using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Kafka;
 
-public partial class KafkaConsumerService: IConsumerService
+public static class KafkaConsumerStartUp
 {
-    private async Task CreateTopicIfNotExistsAsync(string topicName)
+    internal static async Task CreateIfNotExistsAsync(this string topicName, string bootstrapServer)
     {
         var config = new AdminClientConfig
         {
-            BootstrapServers = _parameters.BootstrapServer
+            BootstrapServers = bootstrapServer
         };
 
         using var adminClient = new AdminClientBuilder(config).Build();
@@ -32,13 +30,11 @@ public partial class KafkaConsumerService: IConsumerService
                             ReplicationFactor = 1
                         }
                     });
-                _logger.LogInformation($"Tópico '{topicName}' criado com sucesso.");
                 StdOut.Info($"Tópico '{topicName}' criado com sucesso.");
             }
         }
         catch (KafkaException ex)
         {
-            _logger.LogError($"Erro ao verificar ou criar tópico: {ex.Message}");
             StdOut.Error($"Erro ao verificar ou criar tópico: {ex.Message}");
         }
     }

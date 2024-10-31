@@ -21,42 +21,77 @@ public class RequestProcessorFactory : IRequestProcessorFactory
         _sp = serviceProvider;
     }
 
-    public IRequestProcessor Create(string s)
+    public IRequestProcessor Create(string s, string topic)
     {
-        return s switch
+        if(String.IsNullOrWhiteSpace(topic))
+            throw new ArgumentException($"invalid topic: {topic}", nameof(topic));
+
+        var scope = _sp.CreateScope();
+        
+
+        if(topic == "recover")
         {
-            /** USER OPERATIONS **/
-            "create-user" =>            _sp.GetService<CreateUserProcessor>(),
-            "update-user" =>            _sp.GetService<ManageUserProcessor>(),
-            "change-password" =>        _sp.GetService<ChangePasswordProcessor>(),
-            "recover-user" =>           _sp.GetService<RecoverUserProcessor>(),
-            "verify-user" =>            _sp.GetService<VerifyUserProcessor>(),
-
-
-            /** COLLECTION OPERATIONS **/
-            "add-game" =>               _sp.GetService<AddGameCollectionProcessor>(),
-            "delete-game" =>            _sp.GetService<DeleteGameCollectionProcessor>(),
-            "update-game" =>            _sp.GetService<UpdateGameCollectionProcessor>(),
-
-            "add-console" =>            _sp.GetService<AddConsoleCollectionProcessor>(),
-            "delete-console" =>         _sp.GetService<DeleteConsoleCollectionProcessor>(),
-            "update-console" =>         _sp.GetService<UpdateConsoleCollectionProcessor>(),
-            
-            "add-computer" =>           _sp.GetService<AddComputerCollectionProcessor>(),
-            "delete-computer" =>        _sp.GetService<DeleteComputerCollectionProcessor>(),
-            "update-computer" =>        _sp.GetService<UpdateComputerCollectionProcessor>(),
-
-            /** USER WISHLIST OPERATIONS **/
-            "remove-wishlist" =>        _sp.GetService<RemoveFromWishlistProcessor>(),
-            "add-wishlist" =>           _sp.GetService<AddToWishlistProcessor>(),
-
-            /** RATING OPERATIONS **/
-            "add-rating" =>             _sp.GetService<AddRatingProcessor>(),
-            "edit-rating" =>            _sp.GetService<EditRatingProcessor>(),
-            "remove-rating" =>          _sp.GetService<RemoveRatingProcessor>(),
-
-            _ => throw new ArgumentException($"Unknown message type: {s}")
+            return s switch
+            {
+                "change-password" =>        scope.ServiceProvider.GetService<ChangePasswordProcessor>(),
+                "recover-user" =>           scope.ServiceProvider.GetService<RecoverUserProcessor>(),
+                "verify-user" =>            scope.ServiceProvider.GetService<VerifyUserProcessor>(),
+                _ => throw new ArgumentException($"Unknown message type: {s}")
+                
+            };
         };
+
+        if(topic == "collection")
+        {
+            return s switch
+            {
+                "add-game" =>               scope.ServiceProvider.GetService<AddGameCollectionProcessor>(),
+                "delete-game" =>            scope.ServiceProvider.GetService<DeleteGameCollectionProcessor>(),
+                "update-game" =>            scope.ServiceProvider.GetService<UpdateGameCollectionProcessor>(),
+
+                "add-console" =>            scope.ServiceProvider.GetService<AddConsoleCollectionProcessor>(),
+                "delete-console" =>         scope.ServiceProvider.GetService<DeleteConsoleCollectionProcessor>(),
+                "update-console" =>         scope.ServiceProvider.GetService<UpdateConsoleCollectionProcessor>(),
+                
+                "add-computer" =>           scope.ServiceProvider.GetService<AddComputerCollectionProcessor>(),
+                "delete-computer" =>        scope.ServiceProvider.GetService<DeleteComputerCollectionProcessor>(),
+                "update-computer" =>        scope.ServiceProvider.GetService<UpdateComputerCollectionProcessor>(),
+                _ => throw new ArgumentException($"Unknown message type: {s}")                
+            };
+        };
+
+        if(topic == "user")
+        {
+            return s switch
+            {
+                "create-user" =>            scope.ServiceProvider.GetService<CreateUserProcessor>(),
+                "update-user" =>            scope.ServiceProvider.GetService<ManageUserProcessor>(),
+                _ => throw new ArgumentException($"Unknown message type: {s}")                
+            };
+        };
+
+        if(topic == "rating")
+        {
+            return s switch
+            {
+                "add-rating" =>              scope.ServiceProvider.GetService<AddRatingProcessor>(),
+                "edit-rating"=>              scope.ServiceProvider.GetService<EditRatingProcessor>(),
+                "remove-rating" =>           scope.ServiceProvider.GetService<RemoveRatingProcessor>(),
+                _ => throw new ArgumentException($"Unknown message type: {s}")
+            };
+        };
+
+        if(topic == "wishlist")
+        {
+            return s switch
+            {
+                "remove-wishlist" =>        scope.ServiceProvider.GetService<RemoveFromWishlistProcessor>(),
+                "add-wishlist" =>           scope.ServiceProvider.GetService<AddToWishlistProcessor>(),
+                _ => throw new ArgumentException($"Unknown message type: {s}")
+            };
+        };
+
+        throw new ArgumentException($"invalid topic: {topic}", nameof(topic));
     }
 }
 

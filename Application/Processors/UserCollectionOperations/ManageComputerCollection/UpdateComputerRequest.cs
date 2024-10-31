@@ -1,9 +1,10 @@
-﻿namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
+﻿using System.Text.Json.Serialization;
+
+namespace Application.Processors.UserCollectionOperations.ManageComputerCollection;
 
 public class UpdateComputerRequest
 {
     public Guid UserId { get; set; }
-
     public Guid UserComputerId { get; set; }
     public DateTime PurchaseDate { get; set; }
     public string Condition { get; set; }

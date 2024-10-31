@@ -15,6 +15,7 @@ using Application.Processors.GameOperations.ManageRating;
 using Application.IgdbIntegrationOperations.SearchComputer;
 using Application.IgdbIntegrationOperations.SearchConsole;
 using Application.IgdbIntegrationOperations.SearchGame;
+using Infrastructure.Kafka.Consumers;
 
 namespace Application.DependencyInjection;
 
@@ -22,7 +23,7 @@ public static class ApplicationExtension
 {
     public static IServiceCollection AddProcessors(this IServiceCollection services)
     {
-        services.AddScoped<IRequestProcessorFactory, RequestProcessorFactory>();
+        services.AddSingleton<IRequestProcessorFactory, RequestProcessorFactory>();
 
         /** USER OPERATIONS **/
         services.AddScoped<CreateUserProcessor>();
@@ -56,7 +57,12 @@ public static class ApplicationExtension
 
     public static IServiceCollection AddBrokerServices(this IServiceCollection services)
     {
-        services.AddScoped<IConsumerService, KafkaConsumerService>();
+        services.AddSingleton<CollectionConsumerService>();
+        services.AddSingleton<RatingConsumerService>();
+        services.AddSingleton<RecoverConsumerService>();
+        services.AddSingleton<UserConsumerService>();
+        services.AddSingleton<WishlistConsumerService>();
+
         services.AddHostedService<KafkaConsumerHostedService>();
 
         return services;

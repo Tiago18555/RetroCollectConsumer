@@ -5,20 +5,21 @@ using Domain.Broker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using CrossCutting;
+using CrossCutting; //recover rating user collections wishlist
 
-namespace Infrastructure.Kafka;
-public partial class KafkaConsumerService: IConsumerService
+namespace Infrastructure.Kafka.Consumers;
+
+public partial class RatingConsumerService: IConsumerService
 {
     private readonly IRequestProcessorFactory _processorFactory;
-    private readonly ILogger<KafkaConsumerService> _logger;
+    private readonly ILogger<RatingConsumerService> _logger;
     private readonly IConsumer<Ignore, string> _consumer;
     private readonly ConsumerConfig _consumerConfig;
     private readonly IConfiguration _configuration;
     private readonly Parameters _parameters;
 
-    public KafkaConsumerService(
-        ILogger<KafkaConsumerService> logger, 
+    public RatingConsumerService(
+        ILogger<RatingConsumerService> logger, 
         IRequestProcessorFactory processorFactory,
         IConfiguration configuration
     )
@@ -51,9 +52,10 @@ public partial class KafkaConsumerService: IConsumerService
 
     public async Task ConsumeAsync(CancellationToken cts)
     {
-        _logger.LogInformation("Waiting messages");
-        await CreateTopicIfNotExistsAsync(_parameters.TopicName);
-        _consumer.Subscribe(_parameters.TopicName);
+        const string TOPIC = "rating";
+        StdOut.Info($"Waiting messages of {TOPIC}");
+        await TOPIC.CreateIfNotExistsAsync(_parameters.BootstrapServer);
+        _consumer.Subscribe(TOPIC);
 
         while (!cts.IsCancellationRequested)
         {
@@ -62,7 +64,7 @@ public partial class KafkaConsumerService: IConsumerService
                 var result = _consumer.Consume(cts);
                 var messageType = GetMessageType(result.Message.Value);
 
-                var processor = _processorFactory.Create(messageType); //GET PROCESSOR TYPE
+                var processor = _processorFactory.Create(messageType, TOPIC); //GET PROCESSOR TYPE
 
                 var processResult = await processor.CreateProcessAsync(result.Message.Value, cts); //CALL
 
@@ -80,9 +82,9 @@ public partial class KafkaConsumerService: IConsumerService
                 _logger.LogInformation($"An error occurs on the operation: {err.Message}");
                 StdOut.Error($"DbUpdate error: \n{err.Message}");
             }
-            finally
+            catch(OperationCanceledException)
             {
-                await StopAsync(cts);
+                StdOut.Error($"RATING CONSUMER WORKER CANCELED");
             }
         }
 
@@ -101,5 +103,4 @@ public partial class KafkaConsumerService: IConsumerService
     {
         throw new NotImplementedException();
     }
-
 }
