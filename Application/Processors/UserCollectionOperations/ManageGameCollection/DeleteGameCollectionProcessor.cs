@@ -17,35 +17,37 @@ public partial class DeleteGameCollectionProcessor : IRequestProcessor
         _userCollectionRepository = userCollectionRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserCollection>(field);
         var res = await DeleteGameAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "delete-game" };
     }
 
-    public async Task<ResponseModel> DeleteGameAsync(UserCollection collection, CancellationToken cts)
+    private async Task<bool> DeleteGameAsync(UserCollection collection, CancellationToken cts)
     {
         try
         {
             if (await _userCollectionRepository.DeleteAsync(collection, cts))
             {
-                return ResponseFactory.Ok("Game deleted");
+                StdOut.Error("Game deleted");
+                return true;
             }
             else
             {
-                return ResponseFactory.Ok("Not deleted");
+                StdOut.Error("Not deleted");
+                return false;
             }
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

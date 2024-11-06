@@ -1,4 +1,4 @@
-﻿namespace Application.Processors.GameOperations.ManageRating;
+﻿namespace Application.Processors.RatingOperations.ManageRating;
 
 public class EditRatingRequest
 {

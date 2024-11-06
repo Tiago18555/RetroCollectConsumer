@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text.Json;
 
-namespace Application.Processors.GameOperations.ManageRating;
+namespace Application.Processors.RatingOperations.ManageRating;
 
 public class EditRatingProcessor : IRequestProcessor
 {
@@ -20,16 +20,14 @@ public class EditRatingProcessor : IRequestProcessor
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<EditRatingRequest>(field);
         var res = await EditRatingAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "edit-rating" };
     }
 
-    public async Task<ResponseModel> EditRatingAsync(EditRatingRequest requestBody, CancellationToken cts)
+    private async Task<bool> EditRatingAsync(EditRatingRequest requestBody, CancellationToken cts)
     {
         try
         {
@@ -40,22 +38,23 @@ public class EditRatingProcessor : IRequestProcessor
             foundRating.UpdatedAt = _dateTimeProvider.UtcNow;
 
             var res = await _ratingRepository.UpdateAsync(foundRating, cts);
-            return
-                res
-                .MapObjectsTo(new EditRatingResponseModel())
-                .Ok();
+            StdOut.Info("rating updated");
+            return true;
         }
-        catch (DBConcurrencyException)
+        catch (DBConcurrencyException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

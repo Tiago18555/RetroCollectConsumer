@@ -28,7 +28,7 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
         _userComputerRepository = userComputerRepository;
         _searchComputer = searchComputer;
     }
-        public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
 
@@ -36,11 +36,9 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
 
         var request = JsonSerializer.Deserialize<UpdateComputerRequest>(field);
         var res = await UpdateComputerAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "update-computer" };
     }
 
-    public async Task<ResponseModel> UpdateComputerAsync(UpdateComputerRequest request, CancellationToken cts)
+    private async Task<bool> UpdateComputerAsync(UpdateComputerRequest request, CancellationToken cts)
     {
         try
         {
@@ -68,40 +66,43 @@ public class UpdateComputerCollectionProcessor : IRequestProcessor
 
             var res = await this._userComputerRepository.UpdateAsync(newComputer, cts);
 
-            return res.MapObjectsTo(new UpdateComputerResponseModel()).Ok();
+            StdOut.Info("computer updated");
+            return true;
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DBConcurrencyException)
+        catch (DBConcurrencyException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido.");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidClassTypeException msg)
+        catch (InvalidClassTypeException e)
         {
-            //throw;
-            return ResponseFactory.ServiceUnavailable(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

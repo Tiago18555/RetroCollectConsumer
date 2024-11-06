@@ -17,35 +17,37 @@ public class DeleteConsoleCollectionProcessor : IRequestProcessor
         _userConsoleRepository = userConsoleRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserConsole>(field);
         var res = await DeleteConsoleAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "delete-console" };
     }
 
-    public async Task<ResponseModel> DeleteConsoleAsync(UserConsole console, CancellationToken cts)
+    private async Task<bool> DeleteConsoleAsync(UserConsole console, CancellationToken cts)
     {
         try
         {
             if (await _userConsoleRepository.DeleteAsync(console, cts))
             {
-                return ResponseFactory.Ok("Console deleted");
+                StdOut.Info($"console deleted");
+                return true;
             }
             else
             {
-                return ResponseFactory.Ok("Not deleted");
+                StdOut.Error($"not deleted");
+                return false;
             }
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

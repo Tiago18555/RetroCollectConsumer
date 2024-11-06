@@ -10,12 +10,12 @@ using Application.Processors.UserCollectionOperations.ManageComputerCollection;
 using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 using Application.Processors.UserCollectionOperations.ManageGameCollection;
 using Application.Processors.UserWishlistOperations;
-using Application.Processors.GameOperations.AddRating;
-using Application.Processors.GameOperations.ManageRating;
 using Application.IgdbIntegrationOperations.SearchComputer;
 using Application.IgdbIntegrationOperations.SearchConsole;
 using Application.IgdbIntegrationOperations.SearchGame;
 using Infrastructure.Kafka.Consumers;
+using Application.Processors.RatingOperations.AddRating;
+using Application.Processors.RatingOperations.ManageRating;
 
 namespace Application.DependencyInjection;
 

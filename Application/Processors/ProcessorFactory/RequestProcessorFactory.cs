@@ -6,9 +6,9 @@ using Application.Processors.UserOperations.VerifyAndRecoverUser;
 using Application.Processors.UserCollectionOperations.ManageGameCollection;
 using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
 using Application.Processors.UserCollectionOperations.ManageComputerCollection;
-using Application.Processors.GameOperations.AddRating;
-using Application.Processors.GameOperations.ManageRating;
 using Application.Processors.UserWishlistOperations;
+using Application.Processors.RatingOperations.AddRating;
+using Application.Processors.RatingOperations.ManageRating;
 
 namespace Application.Processors.ProcessorFactory;
 
@@ -26,7 +26,7 @@ public class RequestProcessorFactory : IRequestProcessorFactory
         if(String.IsNullOrWhiteSpace(topic))
             throw new ArgumentException($"invalid topic: {topic}", nameof(topic));
 
-        var scope = _sp.CreateScope();
+        IServiceScope scope = _sp.CreateScope();
         
 
         if(topic == "recover")

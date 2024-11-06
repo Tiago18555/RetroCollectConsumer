@@ -26,16 +26,14 @@ public partial class RecoverUserProcessor : IRequestProcessor
         _recoverRepository = recoverRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<SendEmailInfo>(field);
         var res = await SendEmail(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "recover-user" };
     }
 
-    public async Task<ResponseModel> SendEmail(SendEmailInfo request, CancellationToken cts)
+    private async Task<bool> SendEmail(SendEmailInfo request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
         string host = _config.GetSection("Host").Value;
@@ -78,12 +76,11 @@ public partial class RecoverUserProcessor : IRequestProcessor
             await smtp.DisconnectAsync(true, cts);
 
             StdOut.Info("Email sent");
-
-            return "Email sent".Ok();
+            return true;
         }
         catch (Exception ex) {
             StdOut.Error($"ERROR: {ex.Message}");
-            throw;
+            return false;
         }
     }
 }

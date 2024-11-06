@@ -31,16 +31,14 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
         _searchConsole = searchConsole;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<AddItemRequest>(field);
         var res = await AddConsoleAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "add-console" };
     }
 
-    public async Task<ResponseModel> AddConsoleAsync(AddItemRequest requestBody, CancellationToken cts)
+    private async Task<bool> AddConsoleAsync(AddItemRequest requestBody, CancellationToken cts)
     {
         try
         {
@@ -74,40 +72,48 @@ public partial class AddConsoleCollectionProcessor : IRequestProcessor
             };
 
             var res = await _userConsoleRepository.AddAsync(userConsole, cts);
-            return res.MapObjectsTo(new AddConsoleResponseModel()).Created();
+            return true;
         }
         
-        catch (DBConcurrencyException)
+        catch (DBConcurrencyException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidEnumTypeException msg)
+        catch (InvalidEnumTypeException e)
         {
-            return ResponseFactory.UnsupportedMediaType("Invalid type for Condition or OwnershipStatus: " + msg);
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidEnumValueException msg)
+        catch (InvalidEnumValueException e)
         {
-            return ResponseFactory.BadRequest("Invalid value for Condition or OwnershipStatus: " + msg);
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

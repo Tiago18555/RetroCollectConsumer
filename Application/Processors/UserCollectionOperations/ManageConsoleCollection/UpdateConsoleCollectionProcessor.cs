@@ -31,16 +31,14 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
         _searchConsole = searchConsole;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UpdateConsoleRequest>(field);
         var res = await UpdateConsoleAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "update-console" };
     }
 
-    public async Task<ResponseModel> UpdateConsoleAsync(UpdateConsoleRequest request, CancellationToken cts)
+    private async Task<bool> UpdateConsoleAsync(UpdateConsoleRequest request, CancellationToken cts)
     {
         try
         {
@@ -67,35 +65,38 @@ public partial class UpdateConsoleCollectionProcessor : IRequestProcessor
 
             var res = await this._userConsoleRepository.UpdateAsync(newConsole, cts);
 
-            return res.MapObjectsTo(new UpdateConsoleResponseModel()).Ok();
+            StdOut.Info("console updated");
+            return true;
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DBConcurrencyException)
+        catch (DBConcurrencyException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException e)
         {
-            throw;
-            //return GenericResponses.NotAcceptable("Formato de dados inválido.");
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;            
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;            
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Application.Processors.GameOperations.AddRating;
+﻿namespace Application.Processors.RatingOperations.AddRating;
 
 public class AddRatingRequest
 {

@@ -1,6 +1,5 @@
 using BCryptNet = BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Configuration;
-using Domain;
 using Domain.Exceptions;
 using Domain.Repositories;
 using CrossCutting.Providers;
@@ -30,31 +29,38 @@ public partial class ChangePasswordProcessor : IRequestProcessor
         _timeProvider = timeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<ChangePasswordInfo>(field);
 
         var res = await ChangePasswordAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "change-password" };
     }
 
-    public async Task<ResponseModel> ChangePasswordAsync(ChangePasswordInfo request, CancellationToken cts)
+    private async Task<bool> ChangePasswordAsync(ChangePasswordInfo request, CancellationToken cts)
     {
         StdOut.Info("New message received...");
         var foundUser = await _userRepository.SingleOrDefaultAsync(u => u.Username == request.Username, cts);
 
-        if (foundUser == null)            
-            return ResponseFactory.NotFound("User Not Found");            
+        if (foundUser == null)
+        {
+            StdOut.Error("User not found");     
+            return false;    
+        }
 
-        if (!IsValidTimestampHash(request.TimestampHash))            
-            return "Password reset request has expired or is invalid".Ok();
+        if (!IsValidTimestampHash(request.TimestampHash))     
+        {
+            StdOut.Error("Invalid timestamp hash"); 
+            return false;
+        }       
         
         var hashedNewPassword = BCryptNet.HashPassword(request.Password);
 
-        if (BCryptNet.Verify(request.Password, foundUser.Password))            
-            return "New password cannot be equal to the old one".Ok();           
+        if (BCryptNet.Verify(request.Password, foundUser.Password))  
+        {
+            StdOut.Error("Password cannot be equal to old one");
+            return false;
+        }         
 
         foundUser.Password = hashedNewPassword;
         foundUser.UpdatedAt = _timeProvider.UtcNow;
@@ -62,18 +68,15 @@ public partial class ChangePasswordProcessor : IRequestProcessor
         try
         {
             await _userRepository.UpdateAsync(foundUser, cts);
-
-
-
             await _recoverRepository.UpdateDocumentAsync("RecoverCollection", "Username", foundUser.Username, "Success", true, cts);
 
             StdOut.Info("Password updated successfully");
-            return "Password updated successfully".Ok();
+            return true;
         }
         catch (Exception ex)
         {
             StdOut.Error($"ERROR: {ex.Message}");
-            throw;
+            return false;
         }
     }
 

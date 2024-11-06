@@ -66,10 +66,10 @@ public partial class RatingConsumerService: IConsumerService
 
                 var processor = _processorFactory.Create(messageType, TOPIC); //GET PROCESSOR TYPE
 
-                var processResult = await processor.CreateProcessAsync(result.Message.Value, cts); //CALL
+                processor.CreateProcessAsync(result.Message.Value, cts); //CALL
 
                 var data = JsonSerializer.Serialize(result.Message.Value);
-                _logger.LogInformation("GroupId: {@GroupId} Message: {Message}", _parameters, processResult.Message);
+                //_logger.LogInformation("GroupId: {@GroupId} Message: {Message}", _parameters, processResult.Message);
                 _logger.LogInformation(data.ToString());
             }
             catch(ConsumeException err)

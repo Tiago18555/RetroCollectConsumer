@@ -1,5 +1,4 @@
-﻿using Confluent.Kafka;
-using CrossCutting;
+﻿using CrossCutting;
 using CrossCutting.Providers;
 using Domain.Broker;
 using Domain.Entities;
@@ -22,7 +21,7 @@ public class ManageUserProcessor : IRequestProcessor
         this._dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UpdateUserRequest>(field);
@@ -30,14 +29,12 @@ public class ManageUserProcessor : IRequestProcessor
         StdOut.Error(field);
 
         var res = await UpdateUser(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "update-user" };
     }
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public async Task<UpdateUserResponseModel> UpdateUser(UpdateUserRequest request, CancellationToken cts)
+    private async Task<bool> UpdateUser(UpdateUserRequest request, CancellationToken cts)
     {
         try
         {
@@ -47,13 +44,12 @@ public class ManageUserProcessor : IRequestProcessor
             var res = await this._repository.UpdateAsync(user.MapAndFill(request, _dateTimeProvider.UtcNow), cts);
 
             StdOut.Info("User updated successfully");
-            return res
-                .MapObjectTo( new UpdateUserResponseModel() );
+            return true;
         }
         catch(Exception e)
         {
             StdOut.Error($"ERROR: {e.Message}");
-            throw new Exception(e.Message);
+            return false;
         }
     }
 }

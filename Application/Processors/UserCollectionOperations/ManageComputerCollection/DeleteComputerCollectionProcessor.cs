@@ -1,4 +1,3 @@
-using Domain;
 using Domain.Exceptions;
 using Domain.Repositories;
 using CrossCutting;
@@ -17,36 +16,38 @@ public class DeleteComputerCollectionProcessor : IRequestProcessor
         _userComputerRepository = userComputerRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<UserComputer>(field);
         var res = await DeleteComputerAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "delete-computer" };
     }
     
 
-    public async Task<ResponseModel> DeleteComputerAsync(UserComputer computer, CancellationToken cts)
+    private async Task<bool> DeleteComputerAsync(UserComputer computer, CancellationToken cts)
     {
         try
         {
             if (await _userComputerRepository.DeleteAsync(computer, cts))
             {
-                return ResponseFactory.Ok("Computer deleted");
+                StdOut.Info("computer deleted");
+                return true;
             }
             else
             {
-                return ResponseFactory.Ok("Not deleted");
+                StdOut.Error("not deleted");
+                return false;
             }
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (NullClaimException msg)
+        catch (NullClaimException e)
         {
-            return ResponseFactory.BadRequest(msg.ToString());
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

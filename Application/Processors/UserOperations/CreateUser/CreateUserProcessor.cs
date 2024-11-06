@@ -26,16 +26,15 @@ public class CreateUserProcessor : IRequestProcessor
         this._config = config;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<CreateUserRequest>(field);
-        var res = await CreateUserAsync(request, cts);
+        StdOut.Info("New message received...");
+        (bool useradded, User newUser) = await AddUserToDatabaseAsync(request, cts);
 
-        // call metodo principal void (chamar funções menores (bool)...)
-
-
-        return new MessageModel{ Message = res, SourceType = "create-user" };
+        if (useradded)        
+            SendEmailToVerifyAsync(newUser);
     }
 
     /// <exception cref="DBConcurrencyException"></exception>
@@ -49,25 +48,23 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="BCrypt.Net.SaltParseException"></exception>
     /// <exception cref="DbUpdateConcurrencyException"></exception>
     /// <exception cref="DBUpdateException"></exception>
-    public async Task<CreateUserResponseModel> CreateUserAsync(CreateUserRequest request, CancellationToken cts)
+    private async Task<(bool, User)> AddUserToDatabaseAsync(CreateUserRequest request, CancellationToken cts)
     {
-        StdOut.Info("New message received...");
         try
         {
-            User user = request.MapObjectTo(new User());
+            User user = new();
+            user = request.MapObjectTo(new User());
 
             user.Password = BCryptNet.HashPassword(request.Password);
             user.CreatedAt = DateTime.Now;
 
             var newUser = await this._repository.AddAsync(user, cts);
-
-            await SendEmailToVerifyAsync(newUser);
-            return newUser.MapObjectTo(new CreateUserResponseModel());
+            return (true, newUser);
         }
         catch (Exception ex)
         {
             StdOut.Error($"ERROR: {ex.Message}");
-            return new CreateUserResponseModel();
+            return (false, new User());
         }
 
     }
@@ -76,7 +73,7 @@ public class CreateUserProcessor : IRequestProcessor
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    internal async Task SendEmailToVerifyAsync(User user)
+    private async void SendEmailToVerifyAsync(User user)
     {
         StdOut.Info("Sending email...");
         if (string.IsNullOrEmpty(user.Email))

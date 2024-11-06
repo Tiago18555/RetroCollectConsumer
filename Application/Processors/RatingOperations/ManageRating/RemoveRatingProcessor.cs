@@ -5,7 +5,7 @@ using Domain.Entities;
 using Domain.Repositories;
 using System.Text.Json;
 
-namespace Application.Processors.GameOperations.ManageRating;
+namespace Application.Processors.RatingOperations.ManageRating;
 
 public class RemoveRatingProcessor : IRequestProcessor
 {
@@ -16,15 +16,13 @@ public class RemoveRatingProcessor : IRequestProcessor
         _ratingRepository = ratingRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<Rating>(field);
         var res = await RemoveRatingAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "remove-rating" };
     }
-    public async Task<ResponseModel> RemoveRatingAsync(Rating requestBody, CancellationToken cts)
+    private async Task<bool> RemoveRatingAsync(Rating requestBody, CancellationToken cts)
     {
         try
         {
@@ -33,23 +31,26 @@ public class RemoveRatingProcessor : IRequestProcessor
             if (success)
             {
                 StdOut.Info("Rating Deleted");
-                return "Rating Deleted".Ok();                
+                return true;
             }
 
             StdOut.Error($"Not deleted");
-            return ResponseFactory.ServiceUnavailable($"Rating Deleted");
+            return false;
         }
         catch (ArgumentNullException e)
         {
-            return ResponseFactory.ServiceUnavailable(e.Message);
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
         catch (InvalidOperationException e)
         {
-            return ResponseFactory.ServiceUnavailable(e.Message);
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            throw;
+            StdOut.Error($"ERROR: {e.Message}");
+            return false;
         }
     }
 }

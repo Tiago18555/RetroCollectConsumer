@@ -16,31 +16,39 @@ public class RemoveFromWishlistProcessor : IRequestProcessor
         _wishlistRepository = wishlistRepository;
     }
 
-    public async Task<MessageModel> CreateProcessAsync(string message, CancellationToken cts)
+    public async void CreateProcessAsync(string message, CancellationToken cts)
     {
         var field = message.ExtractMessage();
         var request = JsonSerializer.Deserialize<Wishlist>(field);
         var res = await RemoveAsync(request, cts);
-
-        return new MessageModel{ Message = res, SourceType = "remove-wishlist" };
     }
 
-    public async Task<ResponseModel> RemoveAsync(Wishlist requestBody, CancellationToken cts)
+    private async Task<bool> RemoveAsync(Wishlist requestBody, CancellationToken cts)
     {
         try
         {
-            var result = await _wishlistRepository.DeleteAsync(
-                new Wishlist { UserId = requestBody.UserId, GameId = requestBody.GameId }, 
-                cts
+            var found = await _wishlistRepository.SingleOrDefaultAsync(x => 
+                x.UserId == requestBody.UserId && 
+                x.GameId == requestBody.GameId, cts
             );
 
-            if (result) return "Successfully Deleted".Ok();
-            else return ResponseFactory.NotFound("Operation not successfully completed");
+            var result = await _wishlistRepository.DeleteAsync(found, cts);
+
+            if (result) 
+            {
+                StdOut.Info("removed from wishlist");
+                return true;
+            }
+            else 
+            {
+                StdOut.Error("not removed from wishlist");
+                return false;
+            }
         }
         catch (Exception ex)
         {
             StdOut.Error(ex.Message);
-            return ResponseFactory.ServiceUnavailable($"Error: {ex.Message}");
+            return false;
         }
 
     }
