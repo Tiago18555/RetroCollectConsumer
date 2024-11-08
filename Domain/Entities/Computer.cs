@@ -19,5 +19,5 @@ public class Computer
     public string ImageUrl { get; set; }
 
     public bool IsArcade { get; set; }
-    public IEnumerable<UserComputer> UserComputers { get; set; }
+    public IEnumerable<ComputerCollectionItem> UserComputers { get; set; }
 }

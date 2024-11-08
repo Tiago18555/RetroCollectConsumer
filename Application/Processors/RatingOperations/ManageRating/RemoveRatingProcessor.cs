@@ -1,5 +1,4 @@
 using CrossCutting;
-using Domain;
 using Domain.Broker;
 using Domain.Entities;
 using Domain.Repositories;

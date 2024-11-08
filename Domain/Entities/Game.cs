@@ -16,6 +16,6 @@ public class Game
     public string Description { get; set; }
     public string Summary { get; set; }
     public string ImageUrl { get; set; }
-    public IEnumerable<UserCollection> UserCollections { get; set; }
+    public IEnumerable<GameCollectionItem> UserCollections { get; set; }
     public IEnumerable<Rating> Ratings { get; set; }
 }

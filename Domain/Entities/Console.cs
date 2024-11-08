@@ -19,5 +19,5 @@ public class Console
     public string ImageUrl { get; set; }
 
     public bool IsPortable { get; set; }
-    public IEnumerable<UserConsole> UserConsoles { get; set; }
+    public IEnumerable<ConsoleCollectionItem> UserConsoles { get; set; }
 }

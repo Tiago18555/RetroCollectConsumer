@@ -27,9 +27,9 @@ public class User
     public string LastName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public IEnumerable<UserConsole> UserConsoles { get; set; }
-    public IEnumerable<UserComputer> UserComputers { get; set; }
-    public IEnumerable<UserCollection> UserCollections { get; set; }
+    public IEnumerable<ConsoleCollectionItem> UserConsoles { get; set; }
+    public IEnumerable<ComputerCollectionItem> UserComputers { get; set; }
+    public IEnumerable<GameCollectionItem> UserCollections { get; set; }
     public IEnumerable<Rating> Ratings { get; set; }
     public IEnumerable<Wishlist> Wishlists { get; set; }
 }

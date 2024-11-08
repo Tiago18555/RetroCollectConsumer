@@ -15,9 +15,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         
         services.AddScoped<IUserRepository, UserRepository>();
 
-        services.AddScoped<IUserCollectionRepository, UserCollectionRepository>();
-        services.AddScoped<IUserComputerRepository, UserComputerRepository>();
-        services.AddScoped<IUserConsoleRepository, UserConsoleRepository>();
+        services.AddScoped<IGameCollectionItemRepository, GameCollectionItemRepository>();
+        services.AddScoped<IComputerCollectionItemRepository, ComputerCollectionItemRepository>();
+        services.AddScoped<IConsoleCollectionItemRepository, ConsoleCollectionItemRepository>();
 
         services.AddScoped<IConsoleRepository, ConsoleRepository>();
         services.AddScoped<IComputerRepository, ComputerRepository>();

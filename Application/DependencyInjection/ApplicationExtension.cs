@@ -6,9 +6,9 @@ using Application.Processors.ProcessorFactory;
 using Application.Processors.UserOperations.CreateUser;
 using Application.Processors.UserOperations.ManageUser;
 using Application.Processors.UserOperations.VerifyAndRecoverUser;
-using Application.Processors.UserCollectionOperations.ManageComputerCollection;
-using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
-using Application.Processors.UserCollectionOperations.ManageGameCollection;
+using Application.Processors.CollectionOperations.ManageComputerCollection;
+using Application.Processors.CollectionOperations.ManageConsoleCollection;
+using Application.Processors.CollectionOperations.ManageGameCollection;
 using Application.Processors.UserWishlistOperations;
 using Application.IgdbIntegrationOperations.SearchComputer;
 using Application.IgdbIntegrationOperations.SearchConsole;
@@ -33,9 +33,9 @@ public static class ApplicationExtension
         services.AddScoped<VerifyUserProcessor>();
 
         /** COLLECTION OPERATIONS **/
-        services.AddScoped<AddComputerCollectionProcessor>();
-        services.AddScoped<DeleteComputerCollectionProcessor>();
-        services.AddScoped<UpdateComputerCollectionProcessor>();
+        services.AddScoped<AddComputerToCollectionProcessor>();
+        services.AddScoped<DeleteComputerFromCollectionProcessor>();
+        services.AddScoped<UpdateComputerFromCollectionProcessor>();
         services.AddScoped<AddConsoleCollectionProcessor>();
         services.AddScoped<DeleteConsoleCollectionProcessor>();
         services.AddScoped<UpdateConsoleCollectionProcessor>();

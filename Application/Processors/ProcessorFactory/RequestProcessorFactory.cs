@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Application.Processors.UserOperations.CreateUser;
 using Application.Processors.UserOperations.ManageUser;
 using Application.Processors.UserOperations.VerifyAndRecoverUser;
-using Application.Processors.UserCollectionOperations.ManageGameCollection;
-using Application.Processors.UserCollectionOperations.ManageConsoleCollection;
-using Application.Processors.UserCollectionOperations.ManageComputerCollection;
+using Application.Processors.CollectionOperations.ManageGameCollection;
+using Application.Processors.CollectionOperations.ManageConsoleCollection;
+using Application.Processors.CollectionOperations.ManageComputerCollection;
 using Application.Processors.UserWishlistOperations;
 using Application.Processors.RatingOperations.AddRating;
 using Application.Processors.RatingOperations.ManageRating;
@@ -53,9 +53,9 @@ public class RequestProcessorFactory : IRequestProcessorFactory
                 "delete-console" =>         scope.ServiceProvider.GetService<DeleteConsoleCollectionProcessor>(),
                 "update-console" =>         scope.ServiceProvider.GetService<UpdateConsoleCollectionProcessor>(),
                 
-                "add-computer" =>           scope.ServiceProvider.GetService<AddComputerCollectionProcessor>(),
-                "delete-computer" =>        scope.ServiceProvider.GetService<DeleteComputerCollectionProcessor>(),
-                "update-computer" =>        scope.ServiceProvider.GetService<UpdateComputerCollectionProcessor>(),
+                "add-computer" =>           scope.ServiceProvider.GetService<AddComputerToCollectionProcessor>(),
+                "delete-computer" =>        scope.ServiceProvider.GetService<DeleteComputerFromCollectionProcessor>(),
+                "update-computer" =>        scope.ServiceProvider.GetService<UpdateComputerFromCollectionProcessor>(),
                 _ => throw new ArgumentException($"Unknown message type: {s}")                
             };
         };
